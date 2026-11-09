@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CYBERCLIP // Interactive Workbench & Extension Demo v1.1.0</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="content.css">
+  <style>
+    :root {
+      --cyber-yellow: #FCEE0A;
+      --electric-cyan: #00F0FF;
+      --neon-crimson: #FF003C;
+      --deep-void: #08090C;
+      --armor-plate: #12151D;
+      --armor-plate-light: #1A1F2B;
+      --holo-amber: #FFA500;
+      --font-display: 'Rajdhani', 'Orbitron', sans-serif;
+      --font-mono: 'Share Tech Mono', monospace;
+      --carol-clip: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+      --carol-clip-sm: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--deep-void);
+      color: #E2E8F0;
+      font-family: var(--font-mono);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      background-image: 
+        radial-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(8, 9, 12, 0.8), rgba(8, 9, 12, 0.98));
+      background-size: 20px 20px, 100% 100%;
+    }
+
+    /* TOP NAVBAR */
+    .workbench-nav {
+      background: var(--armor-plate);
+      border-bottom: 2px solid var(--electric-cyan);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+    }
+
+    .brand-title {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 700;
+      color: #FFF;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: 2px;
+    }
+
+    .brand-accent {
+      color: var(--cyber-yellow);
+    }
+
+    .badge-mv3 {
+      font-size: 10px;
+      background: rgba(0, 240, 255, 0.15);
+      border: 1px solid var(--electric-cyan);
+      color: var(--electric-cyan);
+      padding: 2px 8px;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .shortcut-badge {
+      font-size: 10px;
+      color: var(--holo-amber);
+      border: 1px dashed rgba(255, 165, 0, 0.4);
+      padding: 4px 8px;
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: 1px solid var(--electric-cyan);
+      color: var(--electric-cyan);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 6px 14px;
+      cursor: pointer;
+      clip-path: var(--carol-clip-sm);
+      transition: all 150ms ease;
+    }
+
+    .nav-btn:hover {
+      background: var(--electric-cyan);
+      color: var(--deep-void);
+      box-shadow: 0 0 10px var(--electric-cyan);
+    }
+
+    /* MAIN WORKBENCH GRID */
+    .workbench-grid {
+      display: grid;
+      grid-template-columns: 1fr 500px;
+      gap: 24px;
+      padding: 24px;
+      flex: 1;
+      max-width: 1540px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* LEFT: SIMULATED WEBPAGE */
+    .simulated-browser {
+      background: var(--armor-plate);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      clip-path: var(--carol-clip);
+      display: flex;
+      flex-direction: column;
+      height: 680px;
+      position: relative;
+    }
+
+    .browser-toolbar {
+      background: #0D1017;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+    }
+
+    .window-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .w-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .dot-red { background: var(--neon-crimson); }
+    .dot-yellow { background: var(--cyber-yellow); }
+    .dot-cyan { background: var(--electric-cyan); }
+
+    .browser-url-bar {
+      flex: 1;
+      background: var(--deep-void);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 4px 10px;
+      font-size: 11px;
+      color: var(--electric-cyan);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .browser-content {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      line-height: 1.6;
+      font-size: 13.5px;
+      position: relative;
+    }
+
+    .article-tag {
+      color: var(--holo-amber);
+      font-size: 11px;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+
+    .article-title {
+      font-family: var(--font-display);
+      font-size: 24px;
+      color: #FFF;
+      margin-bottom: 14px;
+      border-bottom: 2px solid var(--cyber-yellow);
+      padding-bottom: 6px;
+    }
+
+    .article-lead {
+      color: #94A3B8;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .callout-box {
+      background: rgba(252, 238, 10, 0.08);
+      border-left: 3px solid var(--cyber-yellow);
+      padding: 10px 14px;
+      margin: 14px 0;
+      color: var(--cyber-yellow);
+    }
+
+    .instructions-card {
+      background: rgba(0, 240, 255, 0.05);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      padding: 12px 14px;
+      margin: 14px 0;
+    }
+
+    .simulated-context-menu {
+      position: absolute;
+      display: none;
+      background: #0B0E14;
+      border: 1px solid var(--electric-cyan);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+      z-index: 100;
+      clip-path: var(--carol-clip-sm);
+      min-width: 250px;
+    }
+
+    .ctx-item {
+      padding: 8px 12px;
+      font-size: 11px;
+      color: #FFF;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 120ms ease;
+    }
+
+    .ctx-item:hover {
+      background: var(--electric-cyan);
+      color: var(--deep-void);
+    }
+
+    .ctx-item.primary {
+      color: var(--cyber-yellow);
+      font-weight: bold;
+      border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+    }
+
+    .ctx-item.primary:hover {
+      background: var(--cyber-yellow);
+      color: var(--deep-void);
+    }
+
+    /* RIGHT: POPUP SIMULATOR CONTAINER */
+    .popup-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .popup-label {
+      font-family: var(--font-display);
+      font-size: 13px;
+      color: var(--cyber-yellow);
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .popup-frame-border {
+      border: 2px solid var(--electric-cyan);
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.35);
+      clip-path: var(--carol-clip);
+      background: var(--deep-void);
+      width: 474px;
+      height: 590px;
+      position: relative;
+    }
+
+    .popup-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    /* BOTTOM CONTROLS & DOCS */
+    .workbench-footer {
+      background: var(--armor-plate);
+      border-top: 1px solid rgba(0, 240, 255, 0.2);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+
+    .steps-list {
+      display: flex;
+      gap: 20px;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .step-num {
+      background: var(--cyber-yellow);
+      color: var(--deep-void);
+      font-weight: bold;
+      padding: 1px 5px;
+    }
+
+    @media (max-width: 1100px) {
+      .workbench-grid {
+        grid-template-columns: 1fr;
+      }
+      .popup-wrapper {
+        margin-top: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- WORKBENCH HEADER -->
+  <header class="workbench-nav">
+    <div class="brand-title">
+      <span>CYBERCLIP</span>
+      <span class="brand-accent">// INTERACTIVE BENCHMARK v1.1.0</span>
+      <span class="badge-mv3">MANIFEST V3 READY</span>
+    </div>
+
+    <div class="nav-actions">
+      <span class="shortcut-badge">ATAJOS: [Alt+C = Clip] [Alt+N = HUD]</span>
+      <button class="nav-btn" id="btnSimulateCapture">⚡ SIMULAR CAPTURA</button>
+      <button class="nav-btn" onclick="document.getElementById('popupFrame').contentWindow.location.reload();">🔄 RECARGAR POPUP</button>
+    </div>
+  </header>
+
+  <!-- WORKBENCH MAIN -->
+  <main class="workbench-grid">
+    
+    <!-- LEFT: SIMULATED WEBPAGE WITH SELECTABLE CONTENT & NEON HIGHLIGHTS -->
+    <section class="simulated-browser" id="samplePage">
+      <div class="browser-toolbar">
+        <div class="window-dots">
+          <div class="w-dot dot-red"></div>
+          <div class="w-dot dot-yellow"></div>
+          <div class="w-dot dot-cyan"></div>
+        </div>
+        <div class="browser-url-bar">
+          <span style="color: #64748B;">🔒 HTTPS://</span>
+          <span id="pageUrl">developer.chrome.com/docs/extensions/mv3/storage/</span>
+        </div>
+      </div>
+
+      <div class="browser-content" id="articleBody">
+        <div class="article-tag">// GUÍA TÉCNICA // ARCHITECTURE SPEC v1.1.0</div>
+        <h2 class="article-title" id="pageTitle">Arquitectura de Extensiones: chrome.storage, Content Scripts y Atajos en Manifest V3</h2>
+        
+        <p class="article-lead">
+          <strong>Novedades v1.1.0:</strong> Selecciona cualquier texto con el ratón. Aparecerá instantáneamente un mini-botón flotante <code style="color:#FCEE0A;background:#000;padding:1px 4px;">[⚡ CLIP]</code> con la directiva 45° clip-path de Carol. Al guardarlo, se creará un resaltado neón Electric Cyan automático con tooltip holográfico al pasar el cursor.
+        </p>
+
+        <div class="instructions-card">
+          <div style="color:#00F0FF;font-weight:bold;margin-bottom:4px;">▶ TRES FORMAS DE CAPTURAR FRAGMENTOS:</div>
+          <div>1. <strong>Botón Flotante:</strong> Selecciona texto y haz clic en el botón amarillo flotante <code>[⚡ CLIP]</code>.</div>
+          <div>2. <strong>Clic Derecho:</strong> Selecciona texto -> Clic derecho -> <em>"⚡ Capturar fragmento a CyberClip"</em>.</div>
+          <div>3. <strong>Atajo de Teclado:</strong> Selecciona texto y pulsa <code>Alt + C</code> (Option + C en Mac).</div>
+        </div>
+
+        <p>
+          Las extensiones construidas bajo <strong>Manifest V3</strong> emplean Service Workers efímeros para responder a eventos del sistema como selecciones de texto y atajos de teclado sin consumir recursos en reposo.
+        </p>
+
+        <p id="targetText1">
+          La API <span class="cyberclip-highlight" data-clip-id="seed_01" data-clip-note="Almacenamiento asíncrono óptimo para guardar miles de fragmentos sin bloquear la interfaz." data-clip-date="2026.11.09 // 17:40:00" data-clip-tags="STORAGE, DOCS, CHROME_API">chrome.storage.local proporciona almacenamiento asíncrono optimizado</span> sin los bloqueos de renderizado de localStorage tradicional, permitiendo almacenar estructuras masivas de datos en segundo plano.
+        </p>
+
+        <div class="callout-box" id="targetText2">
+          "Directiva Especial Carol: Bordes cortados a 45 grados con clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))."
+        </div>
+
+        <p id="targetText3">
+          Al indexar fragmentos vinculados a esta URL, el content script inyecta resaltadores luminosos automáticos. Pasa el cursor por encima del texto resaltado en cian para ver el <span style="color:#00F0FF;">tooltip holográfico</span> en tiempo real.
+        </p>
+
+        <p>
+          Tus notas y fragmentos pueden filtrarse por "Esta página" o consultarse en "Todo el banco de datos", con soporte instantáneo para exportación a Markdown (.md) y copias de seguridad en formato JSON.
+        </p>
+      </div>
+
+      <!-- CUSTOM SIMULATED CONTEXT MENU -->
+      <div class="simulated-context-menu" id="simContextMenu">
+        <div class="ctx-item primary" id="ctxCapture">
+          <span>⚡</span> Capturar fragmento a CyberClip (Alt+C)
+        </div>
+        <div class="ctx-item" id="ctxIndexPage">
+          <span>💾</span> Indexar esta URL en CyberClip
+        </div>
+        <div class="ctx-item" id="ctxCopy">
+          <span>📋</span> Copiar al portapapeles
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: EMBEDDED POPUP HUD PREVIEW -->
+    <section class="popup-wrapper">
+      <div class="popup-label">▼ PREVISUALIZACIÓN VIVA DEL POPUP HUD (popup.html) ▼</div>
+      <div class="popup-frame-border">
+        <iframe src="popup.html" class="popup-iframe" id="popupFrame" title="CYBERCLIP Popup Preview"></iframe>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- BOTTOM STEPS GUIDE -->
+  <footer class="workbench-footer">
+    <div class="steps-list">
+      <div class="step-item">
+        <span class="step-num">01</span>
+        <span>Selecciona texto en la página</span>
+      </div>
+      <div class="step-item">
+        <span class="step-num">02</span>
+        <span>Pulsa [⚡ CLIP] o Alt+C</span>
+      </div>
+      <div class="step-item">
+        <span class="step-num">03</span>
+        <span>Observa el resaltado neón y el HUD</span>
+      </div>
+      <div class="step-item">
+        <span class="step-num">04</span>
+        <span>Exporta a Markdown (.md)</span>
+      </div>
+    </div>
+    <div style="color: var(--electric-cyan);">
+      CYBERCLIP v1.1.0 // MANIFEST V3 // HIGH-TECH HUD TERMINAL
+    </div>
+  </footer>
+
+  <script src="content.js"></script>
+  <script>
+    // Context menu & keyboard shortcut simulator for demo
+    const article = document.getElementById('articleBody');
+    const menu = document.getElementById('simContextMenu');
+    const iframe = document.getElementById('popupFrame');
+    let lastSelectedText = '';
+
+    article.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      const sel = window.getSelection().toString().trim();
+      lastSelectedText = sel || "Fragmento de prueba seleccionado desde la página web de arquitectura Manifest V3.";
+
+      const rect = article.getBoundingClientRect();
+      menu.style.left = `${e.clientX - rect.left}px`;
+      menu.style.top = `${e.clientY - rect.top}px`;
+      menu.style.display = 'block';
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#simContextMenu')) {
+        menu.style.display = 'none';
+      }
+    });
+
+    document.getElementById('ctxCapture').addEventListener('click', () => {
+      executeSimulatedCapture(lastSelectedText || 'Fragmento capturado de chrome.storage.local', 'SNIPPET');
+    });
+
+    document.getElementById('ctxIndexPage').addEventListener('click', () => {
+      executeSimulatedCapture('URL Indexada: developer.chrome.com/docs/extensions/mv3/storage/', 'URL_REF');
+    });
+
+    document.getElementById('btnSimulateCapture').addEventListener('click', () => {
+      executeSimulatedCapture('Muestra de captura rápida: "La API chrome.storage.local proporciona almacenamiento asíncrono optimizado."', 'SNIPPET');
+    });
+
+    // Keyboard shortcut simulator Alt+C
+    window.addEventListener('keydown', (e) => {
+      if (e.altKey && (e.key === 'c' || e.key === 'C')) {
+        e.preventDefault();
+        const sel = window.getSelection().toString().trim();
+        if (sel) {
+          executeSimulatedCapture(sel, 'SNIPPET');
+        } else {
+          showDemoToast('CYBERCLIP // SIN SELECCIÓN', 'Resalta texto antes de pulsar Alt+C');
+        }
+      }
+    });
+
+    function executeSimulatedCapture(content, type) {
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      const formattedDate = `${now.getFullYear()}.${pad(now.getMonth()+1)}.${pad(now.getDate())} // ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+      
+      const newRecord = {
+        id: `sim_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+        type: type,
+        title: 'Arquitectura de Extensiones: chrome.storage en Manifest V3',
+        url: 'https://developer.chrome.com/docs/extensions/mv3/storage/',
+        domain: 'developer.chrome.com',
+        content: content,
+        note: 'Capturado con botón flotante / atajo Alt+C.',
+        tags: ['SIMULADOR', 'MV3', 'CHROME'],
+        timestamp: Date.now(),
+        formattedDate: formattedDate
+      };
+
+      // Read current storage
+      const key = 'cyberclip_records';
+      let current = [];
+      try {
+        current = JSON.parse(localStorage.getItem(key) || '[]');
+      } catch(e) {}
+      
+      current.unshift(newRecord);
+      localStorage.setItem(key, JSON.stringify(current));
+
+      showDemoToast('CYBERCLIP // DATAPACK REGISTRADO', content);
+
+      // Reload iframe to show updated state
+      if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.location.reload();
+      }
+    }
+
+    function showDemoToast(title, desc) {
+      const existing = document.querySelector('.cyberclip-corner-toast');
+      if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+
+      const toast = document.createElement('div');
+      toast.className = 'cyberclip-corner-toast';
+      toast.innerHTML = `
+        <div class="cyberclip-toast-glyph">⚡</div>
+        <div class="cyberclip-toast-msg">
+          <span class="cyberclip-toast-title">${title}</span>
+          <span class="cyberclip-toast-detail">"${desc.substring(0, 50)}${desc.length > 50 ? '...' : ''}"</span>
+        </div>
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        if (toast.parentNode) {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateY(15px)';
+          setTimeout(() => {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+          }, 300);
+        }
+      }, 2600);
+    }
+  </script>
+</body>
+</html>

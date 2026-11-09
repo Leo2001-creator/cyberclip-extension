@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CYBERCLIP // HUD Notes & Clipper</title>
+  <!-- Google Fonts: Rajdhani, Orbitron, Share Tech Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body class="cyber-viewport">
+
+  <!-- HUD Grid scanlines background overlay -->
+  <div class="hud-scanlines" aria-hidden="true"></div>
+  <div class="hud-noise" aria-hidden="true"></div>
+
+  <!-- HUD Container -->
+  <main class="hud-shell">
+    
+    <!-- TOP TELEMETRY HEADER -->
+    <header class="hud-header">
+      <div class="header-branding">
+        <div class="hud-icon-badge">
+          <svg class="hud-svg-icon" viewBox="0 0 24 24" fill="none">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="#FCEE0A" stroke="#00F0FF" stroke-width="1.5" />
+          </svg>
+        </div>
+        <div class="branding-text">
+          <h1 class="hud-title">CYBERCLIP<span class="hud-title-accent">//HUD</span></h1>
+          <div class="hud-sys-tag">
+            <span class="status-pulse"></span>
+            <span class="sys-id">SYS_CORE: ONLINE</span>
+            <span class="sys-version">v1.0.0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Telemetry Counter -->
+      <div class="header-telemetry">
+        <div class="telem-box">
+          <span class="telem-label">NODOS</span>
+          <span class="telem-val" id="hudTotalCount">00</span>
+        </div>
+        <div class="telem-box">
+          <span class="telem-label">MEM_BYTES</span>
+          <span class="telem-val" id="hudStorageSize">0 B</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- CURRENT ACTIVE URL SCANNER BANNER -->
+    <section class="active-target-scanner" id="activeTargetBanner">
+      <div class="scanner-header">
+        <span class="scanner-bracket">┌</span>
+        <span class="scanner-label">TARGET // URL ACTIVA</span>
+        <span class="scanner-domain" id="activeDomainLabel">HOST: DETECTANDO...</span>
+        <span class="scanner-bracket">┐</span>
+      </div>
+      <div class="scanner-body">
+        <div class="scanner-url-track" id="activeUrlTrack" title="Haz clic para copiar URL">
+          <span class="scanner-url-text" id="activeUrlText">chrome://extensions/</span>
+        </div>
+        <button class="scanner-copy-btn" id="btnCopyActiveUrl" title="Copiar URL al portapapeles">
+          [CPY]
+        </button>
+      </div>
+    </section>
+
+    <!-- HUD NAVIGATION TABS -->
+    <nav class="hud-nav" role="tablist">
+      <button class="hud-tab-btn active" data-tab="tab-capture" role="tab" aria-selected="true" id="tabBtnCapture">
+        <span class="tab-index">01</span>
+        <span class="tab-label">NOTA RÁPIDA</span>
+      </button>
+      <button class="hud-tab-btn" data-tab="tab-vault" role="tab" aria-selected="false" id="tabBtnVault">
+        <span class="tab-index">02</span>
+        <span class="tab-label">BANCO DATOS</span>
+        <span class="tab-count-badge" id="tabVaultCount">0</span>
+      </button>
+      <button class="hud-tab-btn" data-tab="tab-system" role="tab" aria-selected="false" id="tabBtnSystem">
+        <span class="tab-index">03</span>
+        <span class="tab-label">TELEMETRÍA</span>
+      </button>
+    </nav>
+
+    <!-- CONTENT PANELS -->
+    <div class="hud-panels">
+
+      <!-- ==============================================
+           PANEL 1: NOTA RÁPIDA / CAPTURA MANUAL
+           ============================================== -->
+      <section class="hud-panel active" id="tab-capture" role="tabpanel">
+        
+        <form id="formQuickNote" class="cyber-form" autocomplete="off">
+          
+          <!-- Context Quick Actions -->
+          <div class="form-action-row">
+            <span class="form-section-title">// CAPTURA DIRECTA</span>
+            <button type="button" class="cyber-btn-ghost btn-fetch-selection" id="btnGrabSelection" title="Extraer el texto actualmente seleccionado en la página web">
+              <span class="btn-glyph">⚡</span> EXTRAER SELECCIÓN ACTIVA
+            </button>
+          </div>
+
+          <!-- Fragment / Snippet Input -->
+          <div class="form-field-group">
+            <label for="inputContent" class="form-label">
+              <span class="label-accent">▶</span> FRAGMENTO // CONTENIDO O CITAS
+            </label>
+            <div class="cyber-input-wrapper">
+              <textarea id="inputContent" class="cyber-textarea" rows="4" placeholder="// Pega fragmento de código, texto resaltado o cita relevante..."></textarea>
+              <div class="input-corner-tl"></div>
+              <div class="input-corner-br"></div>
+            </div>
+          </div>
+
+          <!-- Annotation / Custom Note -->
+          <div class="form-field-group">
+            <label for="inputNote" class="form-label">
+              <span class="label-accent">▶</span> ANOTACIÓN PERSONAL // CONTEXTO
+            </label>
+            <div class="cyber-input-wrapper">
+              <input type="text" id="inputNote" class="cyber-input" placeholder="// Ej: Solución al error de CORS, idea clave, refactoring..." />
+              <div class="input-corner-tl"></div>
+              <div class="input-corner-br"></div>
+            </div>
+          </div>
+
+          <!-- Tags input -->
+          <div class="form-field-group">
+            <label for="inputTags" class="form-label">
+              <span class="label-accent">▶</span> ETIQUETAS // TAGS (SEPARADOS POR COMA)
+            </label>
+            <div class="cyber-input-wrapper">
+              <input type="text" id="inputTags" class="cyber-input" placeholder="javascript, bugfix, api, doc" />
+              <div class="input-corner-tl"></div>
+              <div class="input-corner-br"></div>
+            </div>
+            <div class="quick-tags-container" id="quickTagsBar">
+              <span class="tag-chip-helper">RÁPIDOS:</span>
+              <button type="button" class="quick-tag-btn" data-tag="DEV">#DEV</button>
+              <button type="button" class="quick-tag-btn" data-tag="BUG">#BUG</button>
+              <button type="button" class="quick-tag-btn" data-tag="RESEARCH">#RESEARCH</button>
+              <button type="button" class="quick-tag-btn" data-tag="SNIPPET">#SNIPPET</button>
+            </div>
+          </div>
+
+          <!-- Submit Button (With Carol's 45-degree clip-path directive) -->
+          <div class="form-submit-row">
+            <button type="submit" class="cyber-btn-primary" id="btnSaveRecord">
+              <span class="btn-glitch-text">// GUARDAR REGISTRO EN HUD</span>
+              <span class="btn-subtext">INDEXAR A URL ACTUAL [ENTER]</span>
+            </button>
+          </div>
+
+        </form>
+
+      </section>
+
+      <!-- ==============================================
+           PANEL 2: BANCO DE DATOS (LISTA DE FRAGMENTOS)
+           ============================================== -->
+      <section class="hud-panel" id="tab-vault" role="tabpanel">
+        
+        <!-- Filters & Search Toolbar -->
+        <div class="vault-toolbar">
+          
+          <!-- Search box -->
+          <div class="search-field-wrapper">
+            <span class="search-glyph">⌕</span>
+            <input type="text" id="searchFilterInput" class="search-input" placeholder="BUSCAR POR PALABRA O TAG..." />
+            <button type="button" class="search-clear-btn" id="btnClearSearch" title="Limpiar búsqueda">✕</button>
+          </div>
+
+          <!-- Scope toggles: Current URL vs All -->
+          <div class="scope-toggle-bar">
+            <button type="button" class="scope-btn active" id="btnScopeThisPage" data-scope="current">
+              ESTA PÁGINA (<span id="countThisPage">0</span>)
+            </button>
+            <button type="button" class="scope-btn" id="btnScopeAll" data-scope="all">
+              TODO EL BANCO (<span id="countAll">0</span>)
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Tag filter pills bar (Dynamic) -->
+        <div class="active-tag-pills" id="activeTagPillsBar">
+          <!-- Filled dynamically -->
+        </div>
+
+        <!-- Fragments Cards List -->
+        <div class="vault-stream" id="vaultCardsContainer">
+          <!-- Snippet cards will be injected by popup.js -->
+        </div>
+
+        <!-- Empty state placeholder -->
+        <div class="vault-empty-state" id="vaultEmptyState" style="display: none;">
+          <div class="empty-glyph">⚡</div>
+          <div class="empty-title">SIN REGISTROS ENCONTRADOS</div>
+          <div class="empty-desc">No hay fragmentos vinculados a esta búsqueda o URL. Selecciona texto en una página web y usa el clic derecho, o añade una nota en la pestaña 01.</div>
+        </div>
+
+      </section>
+
+      <!-- ==============================================
+           PANEL 3: TELEMETRÍA Y EXPORTACIÓN
+           ============================================== -->
+      <section class="hud-panel" id="tab-system" role="tabpanel">
+        
+        <div class="telemetry-dashboard">
+          
+          <!-- Diagnostics Grid -->
+          <div class="diag-grid">
+            <div class="diag-card">
+              <span class="diag-title">TOTAL FRAGMENTOS</span>
+              <span class="diag-number" id="diagTotalNodes">00</span>
+              <span class="diag-unit">REGISTROS</span>
+            </div>
+            <div class="diag-card">
+              <span class="diag-title">DOMINIOS ÚNICOS</span>
+              <span class="diag-number" id="diagTotalDomains">00</span>
+              <span class="diag-unit">HOSTS</span>
+            </div>
+            <div class="diag-card">
+              <span class="diag-title">ALMACENAMIENTO LOCAL</span>
+              <span class="diag-number" id="diagStorageBytes">0.00</span>
+              <span class="diag-unit">KB USADOS</span>
+            </div>
+            <div class="diag-card">
+              <span class="diag-title">ESTADO CHROME.STORAGE</span>
+              <span class="diag-number status-ok" id="diagStorageStatus">ONLINE</span>
+              <span class="diag-unit">LOCAL SYNC</span>
+            </div>
+          </div>
+
+          <!-- Top Domains telemetry list -->
+          <div class="diag-section">
+            <div class="diag-section-header">
+              <span class="bracket-t">┌</span> TOP DOMINIOS INDEXADOS <span class="bracket-t">┐</span>
+            </div>
+            <div class="domains-list" id="diagDomainsList">
+              <div class="diag-loading">Analizando memoria...</div>
+            </div>
+          </div>
+
+          <!-- Export Actions -->
+          <div class="diag-section">
+            <div class="diag-section-header">
+              <span class="bracket-t">┌</span> OPERACIONES DE ENTRADA / SALIDA (I/O) <span class="bracket-t">┐</span>
+            </div>
+            <div class="export-actions-grid">
+              
+              <button type="button" class="cyber-btn-secondary" id="btnExportMarkdown">
+                <span class="btn-icon">📄</span> EXPORTAR A MARKDOWN (.MD)
+              </button>
+
+              <button type="button" class="cyber-btn-secondary" id="btnExportJSON">
+                <span class="btn-icon">💾</span> EXPORTAR RESPALDO JSON
+              </button>
+
+              <label class="cyber-btn-secondary btn-file-label" id="lblImportJSON">
+                <span class="btn-icon">📂</span> IMPORTAR DATOS JSON
+                <input type="file" id="fileImportJSON" accept=".json" style="display: none;" />
+              </label>
+
+              <button type="button" class="cyber-btn-danger" id="btnPurgeAll">
+                <span class="btn-icon">⚠️</span> PURGAR TODO EL BANCO
+              </button>
+
+            </div>
+          </div>
+
+          <!-- Extension Info -->
+          <div class="diag-info-footer">
+            <div class="info-line">CYBERCLIP // MANIFEST V3 // HIGH-TECH HUD</div>
+            <div class="info-line">DIRECTIVA DE DISEÑO: CAROL BORDER-CUT 45° POLYGON</div>
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+
+    <!-- HUD FOOTER -->
+    <footer class="hud-footer">
+      <div class="footer-telemetry">
+        <span class="footer-label">CONEXIÓN:</span>
+        <span class="footer-value">CHROME_STORAGE_LOCAL</span>
+      </div>
+      <div class="footer-shortcuts">
+        <span class="footer-key">CLIC DERECHO</span> = CAPTURA RÁPIDA
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- HUD TOAST NOTIFICATION -->
+  <div class="hud-toast" id="hudToast" role="alert" aria-live="polite">
+    <span class="toast-marker">⚡</span>
+    <span class="toast-text" id="hudToastMsg">ACCIÓN REGISTRADA</span>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+{
+  "manifest_version": 3,
+  "name": "CYBERCLIP // HUD Notes & Clipper",
+  "version": "1.1.0",
+  "description": "High-Tech Cyberpunk HUD Web Clipper y notas rápidas indexadas por URL con resaltado neón, quick-action flotante y atajos de teclado.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "CYBERCLIP // Abrir HUD Terminal (Alt+N)"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": [
+    "storage",
+    "contextMenus",
+    "activeTab",
+    "clipboardWrite",
+    "scripting"
+  ],
+  "commands": {
+    "clip_selection": {
+      "suggested_key": {
+        "default": "Alt+C",
+        "mac": "Alt+C"
+      },
+      "description": "⚡ Capturar selección actual a CyberClip"
+    },
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+N",
+        "mac": "Alt+N"
+      },
+      "description": "Abrir el HUD Terminal de CyberClip"
+    }
+  }
+}

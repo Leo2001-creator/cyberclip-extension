@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#00F0FF" flood-opacity="0.6"/>
+    </filter>
+    <filter id="yellow-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#FCEE0A" flood-opacity="0.8"/>
+    </filter>
+  </defs>
+  
+  <!-- Base Background -->
+  <rect width="128" height="128" fill="#08090C" />
+  
+  <!-- HUD Chamfered Card -->
+  <polygon points="6,6 106,6 122,22 122,122 22,122 6,106" 
+           fill="#12151D" stroke="#00F0FF" stroke-width="2.5" filter="url(#glow)"/>
+  
+  <!-- Technical Grid lines inside -->
+  <line x1="16" y1="40" x2="112" y2="40" stroke="#00F0FF" stroke-width="0.5" stroke-opacity="0.3" stroke-dasharray="4 2"/>
+  <line x1="16" y1="88" x2="112" y2="88" stroke="#00F0FF" stroke-width="0.5" stroke-opacity="0.3" stroke-dasharray="4 2"/>
+  
+  <!-- Corner Tech Brackets -->
+  <path d="M 12 28 L 12 12 L 28 12" fill="none" stroke="#00F0FF" stroke-width="3" />
+  <path d="M 116 100 L 116 116 L 100 116" fill="none" stroke="#00F0FF" stroke-width="3" />
+  
+  <!-- Telemetry Beacon -->
+  <circle cx="102" cy="24" r="3.5" fill="#00F0FF" />
+  <circle cx="102" cy="24" r="6" fill="none" stroke="#00F0FF" stroke-width="1" stroke-opacity="0.5"/>
+  
+  <!-- High-voltage Lightning / Cyber Glyph -->
+  <polygon points="68,26 42,64 62,64 56,102 86,56 66,56" 
+           fill="#FCEE0A" stroke="#FFFFFF" stroke-width="1" filter="url(#yellow-glow)"/>
+           
+  <!-- Sub-label -->
+  <text x="14" y="118" font-family="'Share Tech Mono', monospace" font-size="8" fill="#00F0FF" letter-spacing="1">CLIP // V1</text>
+</svg>

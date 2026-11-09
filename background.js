@@ -1,0 +1,183 @@
+/**
+ * CYBERCLIP // Service Worker (background.js)
+ * Architecture: Manifest V3 Background Worker
+ * Handles Context Menus, Selection Capture, and chrome.storage.local persistence
+ */
+
+const STORAGE_KEY = 'cyberclip_records';
+const CONTEXT_MENU_SELECTION = 'cyberclip_capture_selection';
+const CONTEXT_MENU_PAGE = 'cyberclip_capture_page';
+
+// 1. Lifecycle: Setup Context Menus on install and startup
+chrome.runtime.onInstalled.addListener(() => {
+  setupContextMenus();
+  updateBadgeCounter();
+  console.log('[CYBERCLIP // BACKGROUND] Service Worker Initialized (Manifest V3)');
+});
+
+chrome.runtime.onStartup.addListener(() => {
+  updateBadgeCounter();
+});
+
+function setupContextMenus() {
+  chrome.contextMenus.removeAll(() => {
+    // Selection menu item
+    chrome.contextMenus.create({
+      id: CONTEXT_MENU_SELECTION,
+      title: '⚡ Capturar fragmento a CyberClip',
+      contexts: ['selection']
+    });
+
+    // Page menu item
+    chrome.contextMenus.create({
+      id: CONTEXT_MENU_PAGE,
+      title: '💾 Indexar esta URL en CyberClip',
+      contexts: ['page']
+    });
+  });
+}
+
+// 2. Handle Context Menu clicks
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  if (!tab || !tab.url) return;
+
+  const url = tab.url;
+  const title = tab.title || extractDomain(url);
+  const domain = extractDomain(url);
+  const now = new Date();
+
+  if (info.menuItemId === CONTEXT_MENU_SELECTION && info.selectionText) {
+    const newRecord = {
+      id: `clip_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      type: 'SNIPPET',
+      title: title,
+      url: url,
+      domain: domain,
+      content: info.selectionText.trim(),
+      note: '',
+      tags: ['SELECCIÓN', domain.replace(/\./g, '_')],
+      timestamp: now.getTime(),
+      formattedDate: formatTechDate(now)
+    };
+
+    await saveRecord(newRecord);
+    triggerBadgeAlert('+1', '#00F0FF'); // Electric Cyan
+  } else if (info.menuItemId === CONTEXT_MENU_PAGE) {
+    const newRecord = {
+      id: `page_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      type: 'URL_REF',
+      title: title,
+      url: url,
+      domain: domain,
+      content: `URL Marcada para inspección: ${title}`,
+      note: 'Página indexada mediante menú contextual.',
+      tags: ['URL', domain.replace(/\./g, '_')],
+      timestamp: now.getTime(),
+      formattedDate: formatTechDate(now)
+    };
+
+    await saveRecord(newRecord);
+    triggerBadgeAlert('URL', '#FCEE0A'); // Cyber Yellow
+  }
+});
+
+// 3. Storage Persistence Helper
+async function saveRecord(record) {
+  try {
+    const data = await chrome.storage.local.get([STORAGE_KEY]);
+    const currentList = Array.isArray(data[STORAGE_KEY]) ? data[STORAGE_KEY] : [];
+    
+    // Add to top of list
+    const updatedList = [record, ...currentList];
+    
+    await chrome.storage.local.set({ [STORAGE_KEY]: updatedList });
+    console.log('[CYBERCLIP] Record persistent in chrome.storage.local:', record.id);
+    
+    // Update badge with count after short delay
+    setTimeout(() => {
+      updateBadgeCounter(updatedList.length);
+    }, 2000);
+  } catch (err) {
+    console.error('[CYBERCLIP // ERROR] Error saving to storage:', err);
+  }
+}
+
+// 4. Badge Telemetry Indicators
+function triggerBadgeAlert(text, color) {
+  chrome.action.setBadgeText({ text: text });
+  chrome.action.setBadgeBackgroundColor({ color: color });
+  chrome.action.setBadgeTextColor({ color: '#08090C' });
+}
+
+async function updateBadgeCounter(countOverride) {
+  try {
+    let count = countOverride;
+    if (count === undefined) {
+      const data = await chrome.storage.local.get([STORAGE_KEY]);
+      const list = Array.isArray(data[STORAGE_KEY]) ? data[STORAGE_KEY] : [];
+      count = list.length;
+    }
+    
+    if (count > 0) {
+      chrome.action.setBadgeText({ text: String(count) });
+      chrome.action.setBadgeBackgroundColor({ color: '#12151D' });
+      chrome.action.setBadgeTextColor({ color: '#00F0FF' });
+    } else {
+      chrome.action.setBadgeText({ text: '' });
+    }
+  } catch (e) {
+    // In restricted context, ignore
+  }
+}
+
+// 5. Utilities
+function extractDomain(urlStr) {
+  try {
+    const parsed = new URL(urlStr);
+    return parsed.hostname.replace(/^www\./, '');
+  } catch (e) {
+    return 'unknown_host';
+  }
+}
+
+function formatTechDate(d) {
+  const pad = (n) => String(n).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  const mm = pad(d.getMonth() + 1);
+  const dd = pad(d.getDate());
+  const hh = pad(d.getHours());
+  const min = pad(d.getMinutes());
+  const ss = pad(d.getSeconds());
+  return `${yyyy}.${mm}.${dd} // ${hh}:${min}:${ss}`;
+}
+
+// 6. Handle runtime messages from Popup
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'UPDATE_BADGE') {
+    updateBadgeCounter();
+    sendResponse({ status: 'OK' });
+  }
+  return true;
+});
+
+// 7. Global Keyboard Shortcuts Listener
+chrome.commands.onCommand.addListener(async (command) => {
+  if (command === 'clip_selection') {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab && tab.id) {
+        chrome.tabs.sendMessage(tab.id, { action: 'CLIP_CURRENT_SELECTION' }, (response) => {
+          if (chrome.runtime.lastError) {
+            console.warn('[CYBERCLIP // SHORTCUT] Notice:', chrome.runtime.lastError.message);
+          } else if (response && response.status === 'OK') {
+            triggerBadgeAlert('+1', '#00F0FF');
+            setTimeout(() => updateBadgeCounter(), 2000);
+          }
+        });
+      }
+    } catch (e) {
+      console.error('[CYBERCLIP // COMMAND ERROR]', e);
+    }
+  }
+});
+
