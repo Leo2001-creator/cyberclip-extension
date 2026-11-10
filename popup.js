@@ -736,7 +736,7 @@
 
     const kbUsed = (bytesUsed / 1024).toFixed(2);
     elements.diagStorageBytes.textContent = kbUsed;
-    elements.hudStorageSize.textContent = `${kbUsed} KB`;
+    elements.hudStorageSize.textContent = `${kbUsed} KB / 100MB`;
 
     // Render domain breakdown
     elements.diagDomainsList.innerHTML = '';

@@ -30,6 +30,7 @@
   ],
   "permissions": [
     "storage",
+    "unlimitedStorage",
     "contextMenus",
     "activeTab",
     "clipboardWrite",
