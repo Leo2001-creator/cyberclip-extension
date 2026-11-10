@@ -74,14 +74,14 @@
 
     <!-- HUD NAVIGATION TABS (4 TABS) -->
     <nav class="hud-nav" role="tablist">
-      <button class="hud-tab-btn active" data-tab="tab-capture" role="tab" aria-selected="true" id="tabBtnCapture">
+      <button class="hud-tab-btn active" data-tab="tab-vault" role="tab" aria-selected="true" id="tabBtnVault">
         <span class="tab-index">01</span>
-        <span class="tab-label">NOTA RÁPIDA</span>
-      </button>
-      <button class="hud-tab-btn" data-tab="tab-vault" role="tab" aria-selected="false" id="tabBtnVault">
-        <span class="tab-index">02</span>
         <span class="tab-label">BANCO DATOS</span>
         <span class="tab-count-badge" id="tabVaultCount">0</span>
+      </button>
+      <button class="hud-tab-btn" data-tab="tab-capture" role="tab" aria-selected="false" id="tabBtnCapture">
+        <span class="tab-index">02</span>
+        <span class="tab-label">NOTA RÁPIDA</span>
       </button>
       <button class="hud-tab-btn" data-tab="tab-system" role="tab" aria-selected="false" id="tabBtnSystem">
         <span class="tab-index">03</span>
@@ -97,9 +97,58 @@
     <div class="hud-panels">
 
       <!-- ==============================================
-           PANEL 1: NOTA RÁPIDA / CAPTURA MANUAL
+           PANEL 1: BANCO DE DATOS (LISTA DE FRAGMENTOS)
            ============================================== -->
-      <section class="hud-panel active" id="tab-capture" role="tabpanel">
+      <section class="hud-panel active" id="tab-vault" role="tabpanel">
+        
+        <!-- Filters & Search Toolbar -->
+        <div class="vault-toolbar">
+          
+          <!-- Search box -->
+          <div class="search-field-wrapper">
+            <span class="search-glyph">⌕</span>
+            <input type="text" id="searchFilterInput" class="search-input" placeholder="BUSCAR POR PALABRA O TAG..." />
+            <button type="button" class="search-clear-btn" id="btnClearSearch" title="Limpiar búsqueda">✕</button>
+          </div>
+
+          <!-- Scope toggles: Current URL vs All vs Favorites -->
+          <div class="scope-toggle-bar">
+            <button type="button" class="scope-btn active" id="btnScopeThisPage" data-scope="current">
+              ESTA PÁGINA (<span id="countThisPage">0</span>)
+            </button>
+            <button type="button" class="scope-btn" id="btnScopeAll" data-scope="all">
+              TODO EL BANCO (<span id="countAll">0</span>)
+            </button>
+            <button type="button" class="scope-btn scope-fav-btn" id="btnScopeFavorites" data-scope="favorites">
+              <span class="star-icon">★</span> FAVORITOS (<span id="countFavorites">0</span>)
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Tag filter pills bar (Dynamic) -->
+        <div class="active-tag-pills" id="activeTagPillsBar">
+          <!-- Filled dynamically -->
+        </div>
+
+        <!-- Fragments Cards List -->
+        <div class="vault-stream" id="vaultCardsContainer">
+          <!-- Snippet cards will be injected by popup.js -->
+        </div>
+
+        <!-- Empty state placeholder -->
+        <div class="vault-empty-state" id="vaultEmptyState" style="display: none;">
+          <div class="empty-glyph">⚡</div>
+          <div class="empty-title">SIN REGISTROS ENCONTRADOS</div>
+          <div class="empty-desc">No hay fragmentos vinculados a este filtro o URL. Selecciona texto en una página web y usa el clic derecho, o añade una nota en la pestaña 02.</div>
+        </div>
+
+      </section>
+
+      <!-- ==============================================
+           PANEL 2: NOTA RÁPIDA / CAPTURA MANUAL
+           ============================================== -->
+      <section class="hud-panel" id="tab-capture" role="tabpanel">
         
         <form id="formQuickNote" class="cyber-form" autocomplete="off">
           
@@ -186,55 +235,6 @@
           </div>
 
         </form>
-
-      </section>
-
-      <!-- ==============================================
-           PANEL 2: BANCO DE DATOS (LISTA DE FRAGMENTOS)
-           ============================================== -->
-      <section class="hud-panel" id="tab-vault" role="tabpanel">
-        
-        <!-- Filters & Search Toolbar -->
-        <div class="vault-toolbar">
-          
-          <!-- Search box -->
-          <div class="search-field-wrapper">
-            <span class="search-glyph">⌕</span>
-            <input type="text" id="searchFilterInput" class="search-input" placeholder="BUSCAR POR PALABRA O TAG..." />
-            <button type="button" class="search-clear-btn" id="btnClearSearch" title="Limpiar búsqueda">✕</button>
-          </div>
-
-          <!-- Scope toggles: Current URL vs All vs Favorites -->
-          <div class="scope-toggle-bar">
-            <button type="button" class="scope-btn active" id="btnScopeThisPage" data-scope="current">
-              ESTA PÁGINA (<span id="countThisPage">0</span>)
-            </button>
-            <button type="button" class="scope-btn" id="btnScopeAll" data-scope="all">
-              TODO EL BANCO (<span id="countAll">0</span>)
-            </button>
-            <button type="button" class="scope-btn scope-fav-btn" id="btnScopeFavorites" data-scope="favorites">
-              <span class="star-icon">★</span> FAVORITOS (<span id="countFavorites">0</span>)
-            </button>
-          </div>
-
-        </div>
-
-        <!-- Tag filter pills bar (Dynamic) -->
-        <div class="active-tag-pills" id="activeTagPillsBar">
-          <!-- Filled dynamically -->
-        </div>
-
-        <!-- Fragments Cards List -->
-        <div class="vault-stream" id="vaultCardsContainer">
-          <!-- Snippet cards will be injected by popup.js -->
-        </div>
-
-        <!-- Empty state placeholder -->
-        <div class="vault-empty-state" id="vaultEmptyState" style="display: none;">
-          <div class="empty-glyph">⚡</div>
-          <div class="empty-title">SIN REGISTROS ENCONTRADOS</div>
-          <div class="empty-desc">No hay fragmentos vinculados a este filtro o URL. Selecciona texto en una página web y usa el clic derecho, o añade una nota en la pestaña 01.</div>
-        </div>
 
       </section>
 
