@@ -17,6 +17,7 @@
   // --- CONSTANTS & CONFIGURATION ---
   const STORAGE_KEY = 'cyberclip_records';
   const SETTINGS_KEY = 'cyberclip_settings';
+  const MAX_STORAGE_BYTES = 100 * 1024 * 1024; // Límite estricto: 100 MB exactos (104.857.600 bytes)
 
   const DEFAULT_PALETTE = [
     { id: 'c1', color: '#FCEE0A', tag: 'IDEA', name: 'Amarillo Neón' },
@@ -463,6 +464,13 @@
       formattedDate: formatTechDate(new Date())
     };
 
+    const currentBytes = new Blob([JSON.stringify(state.records)]).size;
+    const newBytes = new Blob([JSON.stringify(newRecord)]).size;
+    if (currentBytes + newBytes > MAX_STORAGE_BYTES) {
+      showToast('⛔ LÍMITE ESTRICTO DE 100 MB ALCANZADO // PURGA REGISTROS');
+      return;
+    }
+
     state.records.unshift(newRecord);
     await persistRecords();
 
@@ -735,8 +743,14 @@
     }
 
     const kbUsed = (bytesUsed / 1024).toFixed(2);
-    elements.diagStorageBytes.textContent = kbUsed;
-    elements.hudStorageSize.textContent = `${kbUsed} KB / 100MB`;
+    const isFull = bytesUsed >= MAX_STORAGE_BYTES;
+    elements.diagStorageBytes.textContent = `${kbUsed} KB`;
+    elements.hudStorageSize.textContent = isFull ? '100MB (LLENO)' : `${kbUsed} KB / 100MB`;
+    if (isFull) {
+      elements.hudStorageSize.style.color = '#FF003C';
+    } else {
+      elements.hudStorageSize.style.color = '';
+    }
 
     // Render domain breakdown
     elements.diagDomainsList.innerHTML = '';

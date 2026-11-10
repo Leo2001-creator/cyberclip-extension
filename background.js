@@ -96,11 +96,32 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 });
 
-// 3. Storage Persistence Helper
+// 3. Storage Persistence Helper (Límite estricto de 100 MB)
+const MAX_STORAGE_BYTES = 100 * 1024 * 1024; // 100 MB exactos (104.857.600 bytes)
+
 async function saveRecord(record) {
   try {
     const data = await chrome.storage.local.get([STORAGE_KEY]);
     const currentList = Array.isArray(data[STORAGE_KEY]) ? data[STORAGE_KEY] : [];
+
+    // Validar límite estricto de 100 MB
+    let bytesInUse = 0;
+    if (chrome.storage.local.getBytesInUse) {
+      try {
+        bytesInUse = await chrome.storage.local.getBytesInUse(null);
+      } catch (e) {
+        bytesInUse = new Blob([JSON.stringify(currentList)]).size;
+      }
+    } else {
+      bytesInUse = new Blob([JSON.stringify(currentList)]).size;
+    }
+
+    const recordSize = new Blob([JSON.stringify(record)]).size;
+    if (bytesInUse + recordSize > MAX_STORAGE_BYTES) {
+      console.warn('[CYBERCLIP // BLOQUEO] Límite estricto de 100 MB alcanzado. Clip no guardado.');
+      triggerBadgeAlert('FULL', '#FF003C'); // Neon Crimson alert
+      return false;
+    }
     
     // Add to top of list
     const updatedList = [record, ...currentList];
@@ -112,8 +133,10 @@ async function saveRecord(record) {
     setTimeout(() => {
       updateBadgeCounter(updatedList.length);
     }, 2000);
+    return true;
   } catch (err) {
     console.error('[CYBERCLIP // ERROR] Error saving to storage:', err);
+    return false;
   }
 }
 

@@ -303,6 +303,23 @@
     };
 
     try {
+      // Validar límite estricto de 100 MB (104.857.600 bytes)
+      const MAX_STORAGE_BYTES = 100 * 1024 * 1024;
+      let bytesInUse = 0;
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local && chrome.storage.local.getBytesInUse) {
+        try {
+          bytesInUse = await chrome.storage.local.getBytesInUse(null);
+        } catch (e) {
+          bytesInUse = 0;
+        }
+      }
+
+      const recordSize = new Blob([JSON.stringify(record)]).size;
+      if (bytesInUse + recordSize > MAX_STORAGE_BYTES) {
+        showCornerToast('⛔ LÍMITE DE 100 MB ALCANZADO', 'Purga registros en el HUD para liberar espacio.', '#FF003C');
+        return;
+      }
+
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
         const data = await chrome.storage.local.get([STORAGE_KEY]);
         const list = Array.isArray(data[STORAGE_KEY]) ? data[STORAGE_KEY] : [];
