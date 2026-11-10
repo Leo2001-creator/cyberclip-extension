@@ -30,11 +30,19 @@
         <div class="branding-text">
           <h1 class="hud-title">CYBERCLIP<span class="hud-title-accent">//HUD</span></h1>
           <div class="hud-sys-tag">
-            <span class="status-pulse"></span>
-            <span class="sys-id">SYS_CORE: ONLINE</span>
+            <span class="status-pulse" id="hudStatusPulse"></span>
+            <span class="sys-id" id="hudSysStatus">SYS_CORE: ONLINE</span>
             <span class="sys-version">v1.2.0</span>
           </div>
         </div>
+      </div>
+
+      <!-- MASTER POWER ON/OFF SWITCH -->
+      <div class="header-power-control">
+        <button type="button" class="hud-power-btn active" id="btnMasterPower" title="Apagar o Encender CYBERCLIP (Modo Standby)">
+          <span class="power-glyph">⏻</span>
+          <span class="power-label" id="powerBtnLabel">ONLINE</span>
+        </button>
       </div>
 
       <!-- Quick Telemetry Counter -->
@@ -323,6 +331,23 @@
         
         <div class="config-dashboard">
           
+          <!-- Master Extension Power Switch -->
+          <div class="config-block config-block-master">
+            <div class="config-block-title">
+              <span class="config-bracket">[00]</span> ESTADO MAESTRO DE LA EXTENSIÓN
+            </div>
+            <div class="config-row-toggle">
+              <div class="toggle-desc">
+                <span class="toggle-name" id="configMasterStatusTitle">Extensión Activada (ONLINE)</span>
+                <span class="toggle-sub">Al apagarla, la extensión entra en modo Standby: no resalta texto, no muestra el botón flotante ni menús contextuales en las páginas web.</span>
+              </div>
+              <label class="cyber-switch">
+                <input type="checkbox" id="chkMasterPower" checked />
+                <span class="cyber-slider slider-master"></span>
+              </label>
+            </div>
+          </div>
+
           <!-- In-Page Engine Toggle -->
           <div class="config-block">
             <div class="config-block-title">

@@ -31,6 +31,7 @@
   let state = {
     records: [],
     settings: {
+      masterEnabled: true,
       palette: JSON.parse(JSON.stringify(DEFAULT_PALETTE)),
       highlightEnabled: true,
       selectedColor: '#FCEE0A',
@@ -51,6 +52,14 @@
 
   // --- DOM ELEMENTS CACHE ---
   const elements = {
+    // Master Power Switch
+    btnMasterPower: document.getElementById('btnMasterPower'),
+    powerBtnLabel: document.getElementById('powerBtnLabel'),
+    hudStatusPulse: document.getElementById('hudStatusPulse'),
+    hudSysStatus: document.getElementById('hudSysStatus'),
+    chkMasterPower: document.getElementById('chkMasterPower'),
+    configMasterStatusTitle: document.getElementById('configMasterStatusTitle'),
+
     // Top Telemetry Header
     hudFavCount: document.getElementById('hudFavCount'),
     hudTotalCount: document.getElementById('hudTotalCount'),
@@ -129,6 +138,7 @@
     setupTabNavigation();
     setupEventHandlers();
     await loadSettings();
+    updateMasterPowerUI();
     await detectActiveTab();
     await loadStorageRecords();
     renderFormColorSelector();
@@ -225,6 +235,79 @@
   }
 
   // =========================================================================
+  // 1.5 MASTER EXTENSION POWER CONTROLLER (STANDBY / ONLINE)
+  // =========================================================================
+  function updateMasterPowerUI() {
+    const isOnline = state.settings.masterEnabled !== false;
+    
+    if (elements.btnMasterPower) {
+      if (isOnline) {
+        elements.btnMasterPower.classList.add('active');
+        elements.btnMasterPower.classList.remove('off');
+        if (elements.powerBtnLabel) elements.powerBtnLabel.textContent = 'ONLINE';
+        elements.btnMasterPower.title = 'CYBERCLIP Activada. Haz clic para entrar en modo Standby (Apagar)';
+      } else {
+        elements.btnMasterPower.classList.remove('active');
+        elements.btnMasterPower.classList.add('off');
+        if (elements.powerBtnLabel) elements.powerBtnLabel.textContent = 'STANDBY';
+        elements.btnMasterPower.title = 'CYBERCLIP en Standby (Apagada). Haz clic para Encender';
+      }
+    }
+
+    if (elements.hudStatusPulse) {
+      if (isOnline) {
+        elements.hudStatusPulse.classList.remove('off');
+      } else {
+        elements.hudStatusPulse.classList.add('off');
+      }
+    }
+
+    if (elements.hudSysStatus) {
+      elements.hudSysStatus.textContent = isOnline ? 'SYS_CORE: ONLINE' : 'SYS_CORE: STANDBY (APAGADA)';
+      elements.hudSysStatus.style.color = isOnline ? 'var(--electric-cyan)' : 'var(--neon-crimson)';
+    }
+
+    if (elements.chkMasterPower) {
+      elements.chkMasterPower.checked = isOnline;
+    }
+
+    if (elements.configMasterStatusTitle) {
+      elements.configMasterStatusTitle.textContent = isOnline
+        ? 'Extensión Activada (ONLINE)'
+        : 'Extensión Apagada (MODO STANDBY)';
+      elements.configMasterStatusTitle.style.color = isOnline ? '' : 'var(--neon-crimson)';
+    }
+  }
+
+  async function toggleMasterPower() {
+    state.settings.masterEnabled = state.settings.masterEnabled === false ? true : false;
+    await applyMasterPowerChange();
+  }
+
+  async function applyMasterPowerChange() {
+    await persistSettings();
+    updateMasterPowerUI();
+    const isOnline = state.settings.masterEnabled !== false;
+    showToast(isOnline ? '⚡ CYBERCLIP ACTIVADA // SYS_CORE ONLINE' : '⛔ CYBERCLIP EN MODO STANDBY // APAGADA');
+
+    // Notificar al background service worker
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+      chrome.runtime.sendMessage({ action: 'MASTER_POWER_TOGGLED', enabled: isOnline }).catch(() => {});
+    }
+
+    // Notificar a todas las pestañas abiertas para apagar/encender content script inmediatamente
+    if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.query) {
+      chrome.tabs.query({}, (tabs) => {
+        tabs.forEach(tab => {
+          if (tab.id) {
+            chrome.tabs.sendMessage(tab.id, { action: 'MASTER_POWER_TOGGLED', enabled: isOnline }).catch(() => {});
+          }
+        });
+      });
+    }
+  }
+
+  // =========================================================================
   // 2. TAB NAVIGATION
   // =========================================================================
   function setupTabNavigation() {
@@ -259,6 +342,17 @@
   // 3. EVENT HANDLERS
   // =========================================================================
   function setupEventHandlers() {
+    // Master Power Switch (Encendido / Apagado)
+    if (elements.btnMasterPower) {
+      elements.btnMasterPower.addEventListener('click', toggleMasterPower);
+    }
+    if (elements.chkMasterPower) {
+      elements.chkMasterPower.addEventListener('change', (e) => {
+        state.settings.masterEnabled = e.target.checked;
+        applyMasterPowerChange();
+      });
+    }
+
     // Copy active URL
     elements.btnCopyActiveUrl.addEventListener('click', () => {
       copyToClipboard(state.activeTab.url, 'URL COPIADA AL PORTAPAPELES');

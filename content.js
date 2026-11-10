@@ -86,10 +86,22 @@
         if (areaName === 'local') {
           if (changes[SETTINGS_KEY]) {
             const newSettings = changes[SETTINGS_KEY].newValue || {};
+            const prevMaster = settings.masterEnabled;
             const prevHighlight = settings.highlightEnabled;
             settings = Object.assign({}, settings, newSettings);
             
-            if (prevHighlight !== settings.highlightEnabled) {
+            // Si la extensión está apagada por el interruptor maestro
+            if (settings.masterEnabled === false) {
+              removeAllHighlights();
+              removeFloatingBar();
+              return;
+            }
+
+            if (prevMaster === false && settings.masterEnabled !== false) {
+              if (settings.highlightEnabled) {
+                loadAndHighlightPageRecords();
+              }
+            } else if (prevHighlight !== settings.highlightEnabled) {
               if (settings.highlightEnabled) {
                 loadAndHighlightPageRecords();
               } else {
@@ -98,7 +110,7 @@
             }
           }
           if (changes[STORAGE_KEY]) {
-            if (settings.highlightEnabled) {
+            if (settings.masterEnabled !== false && settings.highlightEnabled) {
               loadAndHighlightPageRecords();
             }
           }
@@ -151,6 +163,11 @@
   }
 
   function handleSelectionChange(e) {
+    if (settings.masterEnabled === false) {
+      removeFloatingBar();
+      return;
+    }
+
     const sel = window.getSelection();
     if (!sel || sel.isCollapsed) {
       removeFloatingBar();
@@ -351,7 +368,10 @@
   // 4. DYNAMIC NEON HIGHLIGHTER (IN ASSIGNED COLOR)
   // =========================================================================
   async function loadAndHighlightPageRecords() {
-    if (!settings.highlightEnabled) return;
+    if (settings.masterEnabled === false || !settings.highlightEnabled) {
+      removeAllHighlights();
+      return;
+    }
 
     try {
       let records = [];
@@ -580,7 +600,23 @@
   function setupMessageListener() {
     if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
       chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-        if (request.action === 'CLIP_CURRENT_SELECTION') {
+        if (request.action === 'MASTER_POWER_TOGGLED') {
+          settings.masterEnabled = request.enabled;
+          if (!request.enabled) {
+            removeAllHighlights();
+            removeFloatingBar();
+          } else {
+            if (settings.highlightEnabled) {
+              loadAndHighlightPageRecords();
+            }
+          }
+          sendResponse({ status: 'OK' });
+        } else if (request.action === 'CLIP_CURRENT_SELECTION') {
+          if (settings.masterEnabled === false) {
+            showCornerToast('CYBERCLIP // APAGADA', 'Enciende la extensión para capturar fragmentos', '#FF003C');
+            sendResponse({ status: 'DISABLED' });
+            return true;
+          }
           const sel = window.getSelection();
           const text = sel ? sel.toString().trim() : '';
           if (text) {

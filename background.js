@@ -190,18 +190,50 @@ function formatTechDate(d) {
 }
 
 // 6. Handle runtime messages from Popup
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
   if (request.action === 'UPDATE_BADGE') {
     updateBadgeCounter();
     sendResponse({ status: 'OK' });
+  } else if (request.action === 'MASTER_POWER_TOGGLED') {
+    if (request.enabled) {
+      setupContextMenus();
+      updateBadgeCounter();
+    } else {
+      chrome.contextMenus.removeAll();
+      chrome.action.setBadgeText({ text: 'OFF' });
+      chrome.action.setBadgeBackgroundColor({ color: '#FF003C' });
+      chrome.action.setBadgeTextColor({ color: '#FFFFFF' });
+    }
+    sendResponse({ status: 'OK' });
   }
   return true;
+});
+
+// 6.1 Listen to settings storage changes for master power
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === 'local' && changes['cyberclip_settings']) {
+    const newSettings = changes['cyberclip_settings'].newValue || {};
+    if (newSettings.masterEnabled === false) {
+      chrome.contextMenus.removeAll();
+      chrome.action.setBadgeText({ text: 'OFF' });
+      chrome.action.setBadgeBackgroundColor({ color: '#FF003C' });
+      chrome.action.setBadgeTextColor({ color: '#FFFFFF' });
+    } else if (newSettings.masterEnabled === true) {
+      setupContextMenus();
+      updateBadgeCounter();
+    }
+  }
 });
 
 // 7. Global Keyboard Shortcuts Listener
 chrome.commands.onCommand.addListener(async (command) => {
   if (command === 'clip_selection') {
     try {
+      const settingsData = await chrome.storage.local.get(['cyberclip_settings']);
+      if (settingsData.cyberclip_settings && settingsData.cyberclip_settings.masterEnabled === false) {
+        return; // No ejecutar atajo si la extensión está en modo Standby
+      }
+
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (tab && tab.id) {
         chrome.tabs.sendMessage(tab.id, { action: 'CLIP_CURRENT_SELECTION' }, (response) => {
