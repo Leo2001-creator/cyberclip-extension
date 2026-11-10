@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CYBERCLIP // Interactive Workbench & Extension Demo v1.1.0</title>
+  <title>CYBERCLIP // Interactive Workbench & Extension Demo v1.2.0</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -70,6 +70,14 @@
       background: rgba(0, 240, 255, 0.15);
       border: 1px solid var(--electric-cyan);
       color: var(--electric-cyan);
+      padding: 2px 8px;
+    }
+
+    .badge-feature {
+      font-size: 10px;
+      background: rgba(252, 238, 10, 0.15);
+      border: 1px solid var(--cyber-yellow);
+      color: var(--cyber-yellow);
       padding: 2px 8px;
     }
 
@@ -421,19 +429,19 @@
       </div>
       <div class="step-item">
         <span class="step-num">02</span>
-        <span>Pulsa [⚡ CLIP] o Alt+C</span>
+        <span>Elige color y pulsa [⚡ CLIP]</span>
       </div>
       <div class="step-item">
         <span class="step-num">03</span>
-        <span>Observa el resaltado neón y el HUD</span>
+        <span>Marca favoritos ★ con blindaje</span>
       </div>
       <div class="step-item">
         <span class="step-num">04</span>
-        <span>Exporta a Markdown (.md)</span>
+        <span>Configura slots de color & tags en HUD</span>
       </div>
     </div>
     <div style="color: var(--electric-cyan);">
-      CYBERCLIP v1.1.0 // MANIFEST V3 // HIGH-TECH HUD TERMINAL
+      CYBERCLIP v1.2.0 // MANIFEST V3 // HIGH-TECH HUD TERMINAL
     </div>
   </footer>
 
@@ -463,15 +471,15 @@
     });
 
     document.getElementById('ctxCapture').addEventListener('click', () => {
-      executeSimulatedCapture(lastSelectedText || 'Fragmento capturado de chrome.storage.local', 'SNIPPET');
+      executeSimulatedCapture(lastSelectedText || 'Fragmento capturado de chrome.storage.local', 'SNIPPET', '#FCEE0A', 'IDEA');
     });
 
     document.getElementById('ctxIndexPage').addEventListener('click', () => {
-      executeSimulatedCapture('URL Indexada: developer.chrome.com/docs/extensions/mv3/storage/', 'URL_REF');
+      executeSimulatedCapture('URL Indexada: developer.chrome.com/docs/extensions/mv3/storage/', 'URL_REF', '#00F0FF', 'RESEARCH');
     });
 
     document.getElementById('btnSimulateCapture').addEventListener('click', () => {
-      executeSimulatedCapture('Muestra de captura rápida: "La API chrome.storage.local proporciona almacenamiento asíncrono optimizado."', 'SNIPPET');
+      executeSimulatedCapture('Muestra de captura rápida: "La API chrome.storage.local proporciona almacenamiento asíncrono optimizado."', 'SNIPPET', '#00FF66', 'DEV');
     });
 
     // Keyboard shortcut simulator Alt+C
@@ -480,18 +488,21 @@
         e.preventDefault();
         const sel = window.getSelection().toString().trim();
         if (sel) {
-          executeSimulatedCapture(sel, 'SNIPPET');
+          executeSimulatedCapture(sel, 'SNIPPET', '#FCEE0A', 'IDEA');
         } else {
           showDemoToast('CYBERCLIP // SIN SELECCIÓN', 'Resalta texto antes de pulsar Alt+C');
         }
       }
     });
 
-    function executeSimulatedCapture(content, type) {
+    function executeSimulatedCapture(content, type, color, tag) {
       const now = new Date();
       const pad = (n) => String(n).padStart(2, '0');
       const formattedDate = `${now.getFullYear()}.${pad(now.getMonth()+1)}.${pad(now.getDate())} // ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
       
+      const chosenColor = color || '#FCEE0A';
+      const chosenTag = tag || 'IDEA';
+
       const newRecord = {
         id: `sim_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
         type: type,
@@ -499,8 +510,10 @@
         url: 'https://developer.chrome.com/docs/extensions/mv3/storage/',
         domain: 'developer.chrome.com',
         content: content,
-        note: 'Capturado con botón flotante / atajo Alt+C.',
-        tags: ['SIMULADOR', 'MV3', 'CHROME'],
+        note: `Capturado en simulador [#${chosenTag}].`,
+        color: chosenColor,
+        favorite: false,
+        tags: [chosenTag, 'SIMULADOR', 'MV3'],
         timestamp: Date.now(),
         formattedDate: formattedDate
       };
@@ -515,7 +528,7 @@
       current.unshift(newRecord);
       localStorage.setItem(key, JSON.stringify(current));
 
-      showDemoToast('CYBERCLIP // DATAPACK REGISTRADO', content);
+      showDemoToast(`CYBERCLIP // #${chosenTag} REGISTRADO`, content);
 
       // Reload iframe to show updated state
       if (iframe && iframe.contentWindow) {

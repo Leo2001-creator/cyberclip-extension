@@ -47,6 +47,17 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   const now = new Date();
 
   if (info.menuItemId === CONTEXT_MENU_SELECTION && info.selectionText) {
+    // Fetch settings to get default color and tag if available
+    let clipColor = '#FCEE0A';
+    let clipTag = 'IDEA';
+    try {
+      const settingsData = await chrome.storage.local.get(['cyberclip_settings']);
+      if (settingsData.cyberclip_settings && settingsData.cyberclip_settings.palette && settingsData.cyberclip_settings.palette[0]) {
+        clipColor = settingsData.cyberclip_settings.palette[0].color || clipColor;
+        clipTag = settingsData.cyberclip_settings.palette[0].tag || clipTag;
+      }
+    } catch (e) {}
+
     const newRecord = {
       id: `clip_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       type: 'SNIPPET',
@@ -55,7 +66,9 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       domain: domain,
       content: info.selectionText.trim(),
       note: '',
-      tags: ['SELECCIÓN', domain.replace(/\./g, '_')],
+      color: clipColor,
+      favorite: false,
+      tags: [clipTag, 'SELECCIÓN', domain.replace(/\./g, '_')],
       timestamp: now.getTime(),
       formattedDate: formatTechDate(now)
     };
@@ -71,7 +84,9 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       domain: domain,
       content: `URL Marcada para inspección: ${title}`,
       note: 'Página indexada mediante menú contextual.',
-      tags: ['URL', domain.replace(/\./g, '_')],
+      color: '#00F0FF',
+      favorite: false,
+      tags: ['URL', 'RESEARCH', domain.replace(/\./g, '_')],
       timestamp: now.getTime(),
       formattedDate: formatTechDate(now)
     };

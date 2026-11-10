@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "CYBERCLIP // HUD Notes & Clipper",
-  "version": "1.1.0",
-  "description": "High-Tech Cyberpunk HUD Web Clipper y notas rápidas indexadas por URL con resaltado neón, quick-action flotante y atajos de teclado.",
+  "version": "1.2.0",
+  "description": "High-Tech Cyberpunk HUD Web Clipper y notas rápidas indexadas por URL con sistema de favoritos ★, paleta personalizable de 6 colores, resaltado neón y quick-action flotante.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
