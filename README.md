@@ -1,155 +1,91 @@
-# ⚡ CYBERCLIP // HUD Notes & Web Clipper (v1.2.0)
+# ⚡ CYBERCLIP // HUD Notes & Clipper v1.3.0
 
-> **Extensión de Navegador Manifest V3** con interfaz HUD Cyberpunk de alta tecnología para el guardado rápido de fragmentos, citas y notas indexadas por URL, equipada con **sistema de favoritos blindados (★)**, **paleta configurable de 6 colores vinculada a etiquetas dinámicas**, **resaltado neón in-page** y **selector rectangular con bordes amarillo eléctrico y fondo azul oscuro**.
+> **High-Tech Cyberpunk HUD Web Clipper y gestor de notas indexadas por URL con estética Cyber Yellow `#FCEE0A`, Electric Cyan `#00F0FF`, Neon Crimson `#FF003C` y Deep Void `#08090C`, directiva de bordes cortados a 45° de Carol, motor de resaltado in-page y almacenamiento local de alta capacidad (100 MB).**
 
-![Cyberclip Banner](icons/icon128.png)
-
----
-
-## 🚀 Resumen del Proyecto
-
-**CYBERCLIP** es una extensión de navegador construida bajo la especificación moderna **Google Chrome Extensions Manifest V3**. Permite a desarrolladores, investigadores y analistas capturar fragmentos de texto seleccionados mediante **3 métodos ultrarrápidos**:
-1. **Mini-Barra Flotante In-Page con Paleta de Colores**: Al seleccionar cualquier texto en cualquier sitio web, aparece un mini-rectángulo biselado con **bordes amarillo eléctrico (`#FCEE0A`)** y **relleno azul oscuro (`#0b101d`)**, con el botón `[⚡ CLIP]` y 6 ranuras de color vinculadas a sus etiquetas correspondientes. Un solo clic en cualquier color guarda el fragmento asignándole tanto ese color como su etiqueta.
-2. **Atajo de Teclado Global (`Alt + C`)**: Captura la selección activa instantáneamente con el color y etiqueta activos y muestra un HUD Toast en la esquina inferior.
-3. **Menú Contextual del Ratón (Clic Derecho)**: Opción `⚡ Capturar fragmento a CyberClip`.
-
-Todo se persiste en la base de datos asíncrona local `chrome.storage.local`. Además, cuando vuelves a visitar cualquier página web, el **Content Script** identifica tus fragmentos guardados y los resalta con su color específico asignado (**resplandor y subrayado neón dinámicos**), mostrando un **tooltip holográfico** con tus notas personales al pasar el ratón.
+[![Manifest V3](https://img.shields.io/badge/Manifest-V3-00F0FF?style=for-the-badge&logo=googlechrome&logoColor=08090C)](manifest.json)
+[![Chrome Web Store Ready](https://img.shields.io/badge/Chrome_Web_Store-Ready_v1.3.0-FCEE0A?style=for-the-badge)](STORE_LISTING.md)
+[![Privacy 100% Local](https://img.shields.io/badge/Privacy-100%25_Local-00FF66?style=for-the-badge)](PRIVACY.md)
+[![License OFL Fonts](https://img.shields.io/badge/Fonts-OFL_Bundled-FFA500?style=for-the-badge)](fonts/OFL.txt)
 
 ---
 
-## ✨ Novedades de la Versión 1.2.0
+## 📸 Capturas de Pantalla & Recursos de Publicación
 
-### 1. ★ Sistema de Favoritos con Blindaje Anti-Purga
-- **Estrella Amarilla (`★`, Cyber Yellow `#FCEE0A`)**:
-  - En la pestaña **01. NOTA RÁPIDA**, activa o desactiva la estrella para marcar notas como favoritas antes de guardarlas.
-  - En cada tarjeta del **Banco de Datos**, un botón de estrella permite conmutar el estado de favorito con 1 clic sin recargar.
-- **Filtro Rápido `[★ FAVORITOS]`**:
-  - Nuevo botón de alcance en la barra de herramientas del Banco de Datos junto a `[ESTA PÁGINA]` y `[TODO EL BANCO]`.
-- **Protección contra Purga Masiva de Memoria**:
-  - Al ejecutar una purga en la pestaña de Telemetría, los clips favoritos están **estrictamente blindados** y **NUNCA** se eliminan salvo que el usuario marque de forma explícita la casilla de confirmación *"INCLUIR FAVORITOS PROTEGIDOS"*.
+| Panel HUD Principal (1280x800) | Panel de Configuración (1280x800) | Promo Tile Oficial (440x280) |
+|:---:|:---:|:---:|
+| ![HUD Banco](store/screenshot-1-hud.png) | ![Configuración](store/screenshot-2-config.png) | ![Promo Tile](store/promo-tile-440x280.png) |
 
-### 2. 🎨 Paleta Configurable de 6 Colores & Etiquetas Asociadas
-- **Pestaña `04. CONFIG` (Configuración HUD)**:
-  - **6 Ranuras de Color Personalizables**:
-    - Ranura 1: Amarillo Neón (`#FCEE0A`) ➔ Etiqueta `#IDEA`
-    - Ranura 2: Cian Eléctrico (`#00F0FF`) ➔ Etiqueta `#RESEARCH`
-    - Ranura 3: Verde Neón (`#00FF66`) ➔ Etiqueta `#DEV`
-    - Ranura 4: Magenta Neón (`#FF007F`) ➔ Etiqueta `#BUG`
-    - Ranura 5: Naranja Ámbar (`#FFA500`) ➔ Etiqueta `#LECTURA`
-    - Ranura 6: Azul Eléctrico (`#0070FF`) ➔ Etiqueta `#DOCS`
-  - Cada ranura dispone de un selector de color interactivo (`<input type="color">`), campo HEX editable y un campo de texto para personalizar el nombre de la etiqueta asociada.
-  - Botón para guardar configuración y botón para restablecer los valores de fábrica.
-  - Interruptor HUD para activar/desactivar el motor de resaltado in-page en cualquier momento.
-
-### 3. 🔲 Mini-Selector Rectangular de Colores
-- Diseñado según las especificaciones del usuario:
-  - **Bordes amarillo eléctrico (`#FCEE0A`)**
-  - **Relleno azul oscuro (`#0b101d`)**
-  - Botones de color interactivos con previsualización de la etiqueta en hover y clic directo para guardar.
-  - Presente tanto en la barra flotante de páginas web (`content.js`) como en la pestaña de Nota Rápida del Popup.
-
-### 4. 🌈 Resaltado Dinámico Multicromático In-Page
-- El motor DOM in-page (`content.js` y `content.css`) aplica variables CSS personalizadas (`--clip-color`, `--clip-bg`, `--clip-glow`) para pintar cada fragmento con el color exacto que el usuario le asignó.
+Todos los recursos listos para la Chrome Web Store están en [`store/`](store/):
+- `screenshot-1-hud.png` (1280×800)
+- `screenshot-2-config.png` (1280×800)
+- `screenshot-3-telemetry.png` (1280×800)
+- `promo-tile-440x280.png` (440×280)
 
 ---
 
-## 🎨 Cumplimiento de Especificaciones de Diseño (DESIGN.md)
+## 🚀 Novedades de la Versión 1.3.0
 
-Siguiendo las directivas de `/home/antigravity/DESIGN.md` y las **Directivas Especiales para Carol**:
-
-- **Paleta de Colores Cyberpunk:**
-  - `Cyber Yellow` (`#FCEE0A`): Llamadas a la acción principales (CTA), estrellas de favoritos, alertas y acentos principales.
-  - `Electric Cyan` (`#00F0FF`): Telemetría, escáner de URL, bordes activos y estados online.
-  - `Neon Crimson` (`#FF003C`): Acciones destructivas, purga de memoria y avisos críticos.
-  - `Deep Void` (`#08090C`): Fondo principal del viewport y contraste extremo.
-  - `Armor Plate` (`#12151D`): Placas y módulos contenedores de la interfaz HUD.
-  - `Dark Blue Fill` (`#0b101d`): Fondo de selectores de color rectangulares y diálogos modales.
-  - `Holo Amber` (`#FFA500`): Metadatos auxiliares, dominios y contadores secundarios.
-- **Directiva Especial de Bordes Biselados (Carol):**
-  - Implementación estricta del corte a 45 grados mediante CSS:
-    ```css
-    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
-    ```
-  - Aplicado en: barra flotante, botones primarios, tarjetas del banco, escáner de URL, tooltip holográfico, modal de purga y pestañas HUD.
-- **Efectos Visuales:** Scanlines CRT horizontales, rejilla holográfica, resplandores neón y tipografía técnica (`Orbitron`, `Rajdhani` y `Share Tech Mono`).
+1. **Pestaña 01. BANCO DE DATOS por defecto:** Al abrir el HUD terminal (`Alt+N` o clic en el icono) accedes inmediatamente a tu biblioteca de fragmentos sin pasos intermedios.
+2. **Motor de Almacenamiento con Único Escritor (`lib/store.js`):** Cola serializada de promesas en `background.js` que elimina por completo las condiciones de carrera entre pestañas y content scripts.
+3. **Migración Automática Segura:** Sanea registros legacy sin pérdida de datos del usuario y elimina de forma limpia los fragmentos seed de ejemplo.
+4. **Bilingüe (Español / Inglés):** Selector instantáneo de idioma en la pestaña `04. CONFIG` con cadenas sincronizadas en `_locales/es` y `_locales/en`.
+5. **Edición en Línea de Fragmentos:** Edita contenido, notas personales y etiquetas directamente desde cualquier tarjeta con el botón `[EDITAR]`.
+6. **Deshacer Borrado (Undo Toast):** Notificación flotante de 5 segundos con botón `[DESHACER]` para recuperar fragmentos eliminados por error.
+7. **Orden y Filtros por Fecha:** Ordena por más recientes, más antiguos o alfabéticamente; filtra por hoy (24h), últimos 7 días o todo el historial.
+8. **Atajos Globales de Teclado:**
+   - <kbd>Alt + C</kbd>: Capturar la selección actual en la página web.
+   - <kbd>Alt + V</kbd>: Copiar al portapapeles el último fragmento guardado (mediante documento `offscreen`).
+   - <kbd>Alt + N</kbd>: Abrir el HUD Terminal de CyberClip.
+   - <kbd>/</kbd>: Enfocar instantáneamente el buscador dentro del HUD.
+   - <kbd>↑</kbd> / <kbd>↓</kbd>: Navegar entre tarjetas de fragmentos.
+   - <kbd>Supr</kbd>: Eliminar la tarjeta enfocada (con opción de deshacer).
+9. **Modo Standby Maestro (⏻ ONLINE / STANDBY):** Interruptor en cabecera y en CONFIG para apagar temporalmente la extensión (sin resaltados, sin menús, badge rojo `OFF`).
+10. **Resaltador Neón Multi-nodo Robusto:** Resalta frases largas (hasta 4000 caracteres) incluso cuando cruzan varios nodos DOM en SPAs (React, Vue, Next.js).
+11. **Lista de Sitios Bloqueados (Blocklist):** Configura dominios donde CyberClip nunca actuará (ej. sitios bancarios o confidenciales).
+12. **Fuentes 100% Locales (OFL):** Orbitron, Rajdhani y Share Tech Mono empaquetadas en `woff2` dentro de la extensión, sin peticiones externas a Google Fonts.
+13. **Tope Estricto de 100 MB (104.857.600 bytes):** Monitoreo en tiempo real de bytes usados en el panel de Telemetría.
+14. **Blindaje de Favoritos (★):** Los fragmentos marcados con estrella amarilla jamás se eliminan en purgas masivas a menos que se autorice explícitamente.
 
 ---
 
-## 📁 Estructura del Proyecto
+## 📦 Instalación Local (Modo Desarrollador)
 
-```text
-cyberclip-extension/
-├── manifest.json         # Configuración Manifest V3 (v1.2.0, comandos, content scripts)
-├── background.js        # Service Worker: menús contextuales, comandos y telemetría
-├── content.js           # Content Script v1.2.0: barra flotante con paleta, tags y resaltador
-├── content.css          # Estilos: mini-selector azul/amarillo, tooltip HUD y glows neón
-├── popup.html           # Interfaz HUD modular: 4 pestañas, selector rectangular y modal
-├── popup.css            # Estilos Cyberpunk de alto contraste con clip-path a 45°
-├── popup.js             # Lógica reactiva: favoritos, paleta configurable, filtros y purga
-├── demo.html            # Banco interactivo de pruebas v1.2.0 y simulador contextual
-├── create_icons.py      # Generador autónomo de iconos PNG y SVG
-├── README.md            # Documentación completa y manual de instalación
-└── icons/
-    ├── icon16.png       # Icono 16x16 px para la barra de herramientas
-    ├── icon48.png       # Icono 48x48 px para el administrador de extensiones
-    ├── icon128.png      # Icono 128x128 px para la Chrome Web Store y diálogos
-    └── icon.svg         # Vector maestro escalable con efectos de glow
+1. Abre Google Chrome o cualquier navegador compatible (Brave, Edge, Chromium).
+2. Entra en `chrome://extensions/`.
+3. Activa la casilla **"Modo de desarrollador"** (esquina superior derecha).
+4. Haz clic en **"Cargar descomprimida"** (Load unpacked).
+5. Selecciona la carpeta de este repositorio: `/home/antigravity/cyberclip-extension` (o la subcarpeta `dist/`).
+6. ¡Listo! El icono de CyberClip aparecerá en tu barra de herramientas.
+
+---
+
+## 🛠️ Empaquetado para la Chrome Web Store
+
+Para generar el archivo ZIP limpio listo para subir a la consola de desarrolladores de Google:
+
+```bash
+npm run build
+```
+
+Esto generará `cyberclip-v1.3.0-store.zip` excluyendo tests, scripts, herramientas y archivos temporales.
+
+---
+
+## 🧪 Pruebas Unitarias & Validación
+
+```bash
+npm test     # Ejecuta la suite de pruebas unitarias (9/9 pass)
+npm run lint # Valida la sintaxis de todos los archivos JS
 ```
 
 ---
 
-## 💻 Instrucciones Paso a Paso para Instalar en Chrome / Edge
+## 🔒 Privacidad
 
-### Paso 1: Abrir la página de extensiones del navegador
-- **En Google Chrome / Chromium / Brave:**
-  Escribe en la barra de direcciones:
-  ```text
-  chrome://extensions/
-  ```
-- **En Microsoft Edge:**
-  Escribe en la barra de direcciones:
-  ```text
-  edge://extensions/
-  ```
-
-### Paso 2: Activar el Modo Desarrollador
-- En la esquina superior derecha de la página, activa el interruptor que dice **"Modo de desarrollador"** (o *"Developer mode"*).
-- Al activarlo, verás aparecer una nueva barra de herramientas con botones adicionales.
-
-### Paso 3: Cargar la extensión descomprimida
-1. Haz clic en el botón **"Cargar descomprimida"** (*"Load unpacked"*).
-2. En el explorador de archivos que se abrirá, navega y selecciona la carpeta del proyecto:
-   ```text
-   /home/antigravity/cyberclip-extension
-   ```
-3. Haz clic en **"Seleccionar carpeta"** (*"Select folder"*).
-
-*(También dispones del archivo empaquetado `cyberclip-extension.zip` en `/home/antigravity/` si deseas distribuirlo directamente).*
-
-### Paso 4: Fijar la extensión para fácil acceso
-1. En la barra de herramientas de tu navegador, haz clic en el icono de la pieza de rompecabezas (Extensiones).
-2. Busca **"CYBERCLIP // HUD Notes & Clipper"**.
-3. Haz clic en el icono de la chincheta (Pin) para fijar el icono amarillo y cian en tu barra.
+Consulta el documento completo en [PRIVACY.md](PRIVACY.md). CYBERCLIP almacena todos los datos en local dentro de `chrome.storage.local`. No recopila datos personales, no utiliza analíticas externas y no se comunica con ningún servidor.
 
 ---
 
-## 🧪 Atajos de Teclado y Pruebas
+## 📄 Licencia
 
-| Atajo | Acción | Descripción |
-| :--- | :--- | :--- |
-| `Alt + C` | **⚡ Captura Instantánea** | Guarda el texto seleccionado en la página web actual con color y tag activos en segundo plano. |
-| `Alt + N` | **Abrir HUD Terminal** | Despliega instantáneamente el Popup de CyberClip sin mover el ratón. |
-| `Selección` | **Barra Flotante con Paleta** | Mini-barra azul oscuro con borde amarillo para elegir color y tag en 1 clic. |
-| `Clic Derecho` | **Menú Contextual** | Opción *"Capturar fragmento a CyberClip"*. |
-
----
-
-## 🔒 Privacidad y Rendimiento
-
-- **100% Local (Offline-first):** CYBERCLIP no envía ningún dato a servidores externos. Todo el contenido reside de manera privada en tu navegador a través de `chrome.storage.local`.
-- **Cero dependencias pesadas:** Construido enteramente en JavaScript moderno ES6+, HTML5 semántico y CSS3 puro con aceleración por hardware.
-- **Sin fugas de memoria:** El Service Worker entra en estado de suspensión cuando no está procesando eventos de captura.
-
----
-
-> Desarrollado por **Carol** // Frontend & Chrome Extension Architecture // *High-Tech Cyberpunk HUD Design v1.2.0*
+MIT License. Fuentes empaquetadas bajo licencia SIL Open Font License (OFL) en [fonts/OFL.txt](fonts/OFL.txt).

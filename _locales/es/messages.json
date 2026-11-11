@@ -1,0 +1,10 @@
+{
+  "extName": {
+    "message": "CYBERCLIP // HUD Notes & Clipper",
+    "description": "Nombre de la extensión"
+  },
+  "extDescription": {
+    "message": "High-Tech Cyberpunk HUD Web Clipper y notas por URL con favoritos ★, paleta de 6 colores, resaltado neón, atajos y privacidad 100% local.",
+    "description": "Descripción en la Chrome Web Store"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "cyberclip-extension",
+  "version": "1.3.0",
+  "description": "High-Tech Cyberpunk HUD Notes & Web Clipper",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/store.test.js",
+    "lint": "for f in background.js content.js popup.js offscreen.js lib/*.js; do node --check \"$f\"; done",
+    "build": "node scripts/build.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.65.0"
+  }
+}

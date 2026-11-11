@@ -1,34 +1,53 @@
 /**
- * CYBERCLIP // Service Worker (background.js)
+ * CYBERCLIP // Service Worker (background.js) v1.3.0
  * Architecture: Manifest V3 Background Worker
- * Handles Context Menus, Selection Capture, and chrome.storage.local persistence
+ * Handles Storage engine (single-writer), Context Menus, Keyboard Shortcuts (Alt+C, Alt+V, Alt+N)
+ * and Offscreen clipboard bridge.
  */
 
-const STORAGE_KEY = 'cyberclip_records';
+importScripts('lib/shared.js', 'lib/store.js');
+
+const S = globalThis.CyberClipShared;
+const store = globalThis.CyberClipStore.createStore(chrome.storage.local);
+
 const CONTEXT_MENU_SELECTION = 'cyberclip_capture_selection';
 const CONTEXT_MENU_PAGE = 'cyberclip_capture_page';
 
-// 1. Lifecycle: Setup Context Menus on install and startup
-chrome.runtime.onInstalled.addListener(() => {
-  setupContextMenus();
-  updateBadgeCounter();
-  console.log('[CYBERCLIP // BACKGROUND] Service Worker Initialized (Manifest V3)');
+// 1. Lifecycle
+chrome.runtime.onInstalled.addListener(async () => {
+  try {
+    await store.migrate();
+    await syncPowerState();
+    console.log('[CYBERCLIP // BACKGROUND] v1.3.0 initialized & migrated');
+  } catch (e) {
+    console.error('[CYBERCLIP // BACKGROUND] Init error:', e);
+  }
 });
 
-chrome.runtime.onStartup.addListener(() => {
-  updateBadgeCounter();
+chrome.runtime.onStartup.addListener(async () => {
+  await syncPowerState();
 });
+
+async function syncPowerState() {
+  const settings = await store.getSettings();
+  if (settings.masterEnabled === false) {
+    chrome.contextMenus.removeAll();
+    chrome.action.setBadgeText({ text: 'OFF' });
+    chrome.action.setBadgeBackgroundColor({ color: '#FF003C' });
+    chrome.action.setBadgeTextColor({ color: '#FFFFFF' });
+  } else {
+    setupContextMenus();
+    await updateBadgeCounter();
+  }
+}
 
 function setupContextMenus() {
   chrome.contextMenus.removeAll(() => {
-    // Selection menu item
     chrome.contextMenus.create({
       id: CONTEXT_MENU_SELECTION,
       title: '⚡ Capturar fragmento a CyberClip',
       contexts: ['selection']
     });
-
-    // Page menu item
     chrome.contextMenus.create({
       id: CONTEXT_MENU_PAGE,
       title: '💾 Indexar esta URL en CyberClip',
@@ -37,125 +56,79 @@ function setupContextMenus() {
   });
 }
 
-// 2. Handle Context Menu clicks
+// 2. Context Menu clicks
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (!tab || !tab.url) return;
+  const settings = await store.getSettings();
+  if (settings.masterEnabled === false) return;
+  if (S.isHostBlocked(tab.url, settings.blockedSites)) return;
 
   const url = tab.url;
-  const title = tab.title || extractDomain(url);
-  const domain = extractDomain(url);
+  const title = tab.title || S.extractDomain(url);
+  const domain = S.extractDomain(url);
   const now = new Date();
 
   if (info.menuItemId === CONTEXT_MENU_SELECTION && info.selectionText) {
-    // Fetch settings to get default color and tag if available
-    let clipColor = '#FCEE0A';
-    let clipTag = 'IDEA';
-    try {
-      const settingsData = await chrome.storage.local.get(['cyberclip_settings']);
-      if (settingsData.cyberclip_settings && settingsData.cyberclip_settings.palette && settingsData.cyberclip_settings.palette[0]) {
-        clipColor = settingsData.cyberclip_settings.palette[0].color || clipColor;
-        clipTag = settingsData.cyberclip_settings.palette[0].tag || clipTag;
-      }
-    } catch (e) {}
-
-    const newRecord = {
-      id: `clip_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+    const slot = (settings.palette && settings.palette[0]) || S.DEFAULT_PALETTE[0];
+    const rec = {
       type: 'SNIPPET',
-      title: title,
-      url: url,
-      domain: domain,
+      title, url, domain,
       content: info.selectionText.trim(),
       note: '',
-      color: clipColor,
+      color: slot.color,
       favorite: false,
-      tags: [clipTag, 'SELECCIÓN', domain.replace(/\./g, '_')],
+      tags: [slot.tag, 'SELECCIÓN', domain.replace(/\./g, '_')],
       timestamp: now.getTime(),
-      formattedDate: formatTechDate(now)
+      formattedDate: S.formatTechDate(now)
     };
-
-    await saveRecord(newRecord);
-    triggerBadgeAlert('+1', '#00F0FF'); // Electric Cyan
+    const res = await store.add(rec);
+    if (res.ok) {
+      triggerBadgeAlert('+1', '#00F0FF');
+      setTimeout(updateBadgeCounter, 1800);
+    } else if (res.error === 'QUOTA_EXCEEDED') {
+      triggerBadgeAlert('FULL', '#FF003C');
+    }
   } else if (info.menuItemId === CONTEXT_MENU_PAGE) {
-    const newRecord = {
-      id: `page_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+    const rec = {
       type: 'URL_REF',
-      title: title,
-      url: url,
-      domain: domain,
+      title, url, domain,
       content: `URL Marcada para inspección: ${title}`,
       note: 'Página indexada mediante menú contextual.',
       color: '#00F0FF',
       favorite: false,
       tags: ['URL', 'RESEARCH', domain.replace(/\./g, '_')],
       timestamp: now.getTime(),
-      formattedDate: formatTechDate(now)
+      formattedDate: S.formatTechDate(now)
     };
-
-    await saveRecord(newRecord);
-    triggerBadgeAlert('URL', '#FCEE0A'); // Cyber Yellow
+    const res = await store.add(rec);
+    if (res.ok) {
+      triggerBadgeAlert('URL', '#FCEE0A');
+      setTimeout(updateBadgeCounter, 1800);
+    }
   }
 });
 
-// 3. Storage Persistence Helper (Límite estricto de 100 MB)
-const MAX_STORAGE_BYTES = 100 * 1024 * 1024; // 100 MB exactos (104.857.600 bytes)
-
-async function saveRecord(record) {
-  try {
-    const data = await chrome.storage.local.get([STORAGE_KEY]);
-    const currentList = Array.isArray(data[STORAGE_KEY]) ? data[STORAGE_KEY] : [];
-
-    // Validar límite estricto de 100 MB
-    let bytesInUse = 0;
-    if (chrome.storage.local.getBytesInUse) {
-      try {
-        bytesInUse = await chrome.storage.local.getBytesInUse(null);
-      } catch (e) {
-        bytesInUse = new Blob([JSON.stringify(currentList)]).size;
-      }
-    } else {
-      bytesInUse = new Blob([JSON.stringify(currentList)]).size;
-    }
-
-    const recordSize = new Blob([JSON.stringify(record)]).size;
-    if (bytesInUse + recordSize > MAX_STORAGE_BYTES) {
-      console.warn('[CYBERCLIP // BLOQUEO] Límite estricto de 100 MB alcanzado. Clip no guardado.');
-      triggerBadgeAlert('FULL', '#FF003C'); // Neon Crimson alert
-      return false;
-    }
-    
-    // Add to top of list
-    const updatedList = [record, ...currentList];
-    
-    await chrome.storage.local.set({ [STORAGE_KEY]: updatedList });
-    console.log('[CYBERCLIP] Record persistent in chrome.storage.local:', record.id);
-    
-    // Update badge with count after short delay
-    setTimeout(() => {
-      updateBadgeCounter(updatedList.length);
-    }, 2000);
-    return true;
-  } catch (err) {
-    console.error('[CYBERCLIP // ERROR] Error saving to storage:', err);
-    return false;
-  }
-}
-
-// 4. Badge Telemetry Indicators
+// 3. Badge
 function triggerBadgeAlert(text, color) {
-  chrome.action.setBadgeText({ text: text });
-  chrome.action.setBadgeBackgroundColor({ color: color });
+  chrome.action.setBadgeText({ text });
+  chrome.action.setBadgeBackgroundColor({ color });
   chrome.action.setBadgeTextColor({ color: '#08090C' });
 }
 
 async function updateBadgeCounter(countOverride) {
   try {
+    const settings = await store.getSettings();
+    if (settings.masterEnabled === false) {
+      chrome.action.setBadgeText({ text: 'OFF' });
+      chrome.action.setBadgeBackgroundColor({ color: '#FF003C' });
+      chrome.action.setBadgeTextColor({ color: '#FFFFFF' });
+      return;
+    }
     let count = countOverride;
     if (count === undefined) {
-      const data = await chrome.storage.local.get([STORAGE_KEY]);
-      const list = Array.isArray(data[STORAGE_KEY]) ? data[STORAGE_KEY] : [];
+      const list = await store.getAll();
       count = list.length;
     }
-    
     if (count > 0) {
       chrome.action.setBadgeText({ text: String(count) });
       chrome.action.setBadgeBackgroundColor({ color: '#12151D' });
@@ -163,91 +136,181 @@ async function updateBadgeCounter(countOverride) {
     } else {
       chrome.action.setBadgeText({ text: '' });
     }
-  } catch (e) {
-    // In restricted context, ignore
-  }
+  } catch (e) {}
 }
 
-// 5. Utilities
-function extractDomain(urlStr) {
-  try {
-    const parsed = new URL(urlStr);
-    return parsed.hostname.replace(/^www\./, '');
-  } catch (e) {
-    return 'unknown_host';
-  }
-}
+// 4. Message Router (centralizado para popup, content script y offscreen)
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  const handler = async () => {
+    switch (request.action) {
+      case 'GET_SETTINGS':
+        return { ok: true, settings: await store.getSettings() };
 
-function formatTechDate(d) {
-  const pad = (n) => String(n).padStart(2, '0');
-  const yyyy = d.getFullYear();
-  const mm = pad(d.getMonth() + 1);
-  const dd = pad(d.getDate());
-  const hh = pad(d.getHours());
-  const min = pad(d.getMinutes());
-  const ss = pad(d.getSeconds());
-  return `${yyyy}.${mm}.${dd} // ${hh}:${min}:${ss}`;
-}
+      case 'SAVE_SETTINGS': {
+        const next = await store.saveSettings(request.patch || {});
+        await syncPowerState();
+        return { ok: true, settings: next };
+      }
 
-// 6. Handle runtime messages from Popup
-chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
-  if (request.action === 'UPDATE_BADGE') {
-    updateBadgeCounter();
-    sendResponse({ status: 'OK' });
-  } else if (request.action === 'MASTER_POWER_TOGGLED') {
-    if (request.enabled) {
-      setupContextMenus();
-      updateBadgeCounter();
-    } else {
-      chrome.contextMenus.removeAll();
-      chrome.action.setBadgeText({ text: 'OFF' });
-      chrome.action.setBadgeBackgroundColor({ color: '#FF003C' });
-      chrome.action.setBadgeTextColor({ color: '#FFFFFF' });
+      case 'MASTER_POWER_TOGGLED': {
+        await store.saveSettings({ masterEnabled: !!request.enabled });
+        await syncPowerState();
+        return { ok: true };
+      }
+
+      case 'SAVE_CLIP': {
+        const settings = await store.getSettings();
+        if (settings.masterEnabled === false) return { ok: false, error: 'STANDBY' };
+        if (request.record && request.record.url && S.isHostBlocked(request.record.url, settings.blockedSites)) {
+          return { ok: false, error: 'BLOCKED' };
+        }
+        const res = await store.add(request.record);
+        if (res.ok) {
+          triggerBadgeAlert('+1', '#00F0FF');
+          setTimeout(updateBadgeCounter, 1800);
+        } else if (res.error === 'QUOTA_EXCEEDED') {
+          triggerBadgeAlert('FULL', '#FF003C');
+        }
+        return res;
+      }
+
+      case 'UPDATE_RECORD':
+        return await store.update(request.id, request.patch);
+
+      case 'DELETE_RECORDS':
+        return await store.remove(request.ids);
+
+      case 'RESTORE_RECORDS':
+        return await store.restore(request.records);
+
+      case 'PURGE':
+        return await store.purge(request.includeFavorites === true);
+
+      case 'IMPORT_MANY':
+        return await store.importMany(request.items);
+
+      case 'GET_USAGE':
+        return await store.usage();
+
+      case 'GET_PAGE_RECORDS': {
+        const all = await store.getAll();
+        const norm = S.normalizePageUrl(request.url);
+        return { ok: true, records: all.filter(r => S.normalizePageUrl(r.url) === norm) };
+      }
+
+      case 'GET_ALL_RECORDS':
+        return { ok: true, records: await store.getAll() };
+
+      case 'UPDATE_BADGE':
+        await updateBadgeCounter();
+        return { ok: true };
+
+      case 'COPY_TEXT':
+        return await copyViaOffscreen(request.text || '');
+
+      default:
+        return { ok: false, error: 'UNKNOWN_ACTION' };
     }
-    sendResponse({ status: 'OK' });
-  }
-  return true;
+  };
+
+  handler()
+    .then(res => sendResponse(res))
+    .catch(err => sendResponse({ ok: false, error: String(err && err.message) }));
+  return true; // Asíncrono
 });
 
-// 6.1 Listen to settings storage changes for master power
+// 5. Watch storage changes to keep badge/menus in sync
 chrome.storage.onChanged.addListener((changes, areaName) => {
-  if (areaName === 'local' && changes['cyberclip_settings']) {
-    const newSettings = changes['cyberclip_settings'].newValue || {};
-    if (newSettings.masterEnabled === false) {
-      chrome.contextMenus.removeAll();
-      chrome.action.setBadgeText({ text: 'OFF' });
-      chrome.action.setBadgeBackgroundColor({ color: '#FF003C' });
-      chrome.action.setBadgeTextColor({ color: '#FFFFFF' });
-    } else if (newSettings.masterEnabled === true) {
-      setupContextMenus();
+  if (areaName === 'local') {
+    if (changes[S.SETTINGS_KEY]) {
+      syncPowerState();
+    }
+    if (changes[S.STORAGE_KEY]) {
       updateBadgeCounter();
     }
   }
 });
 
-// 7. Global Keyboard Shortcuts Listener
-chrome.commands.onCommand.addListener(async (command) => {
-  if (command === 'clip_selection') {
-    try {
-      const settingsData = await chrome.storage.local.get(['cyberclip_settings']);
-      if (settingsData.cyberclip_settings && settingsData.cyberclip_settings.masterEnabled === false) {
-        return; // No ejecutar atajo si la extensión está en modo Standby
-      }
+// 6. Offscreen clipboard bridge (Service Worker -> Offscreen)
+async function copyViaOffscreen(text) {
+  try {
+    const existing = await chrome.offscreen.hasDocument();
+    if (!existing) {
+      await chrome.offscreen.createDocument({
+        url: 'offscreen.html',
+        reasons: ['CLIPBOARD'],
+        justification: 'CYBERCLIP requiere copiar el último fragmento capturado al portapapeles con Alt+V'
+      });
+    }
+    const res = await chrome.runtime.sendMessage({ action: 'OFFSCREEN_COPY', text });
+    return { ok: res && res.ok };
+  } catch (e) {
+    return { ok: false, error: String(e && e.message) };
+  }
+}
 
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (tab && tab.id) {
-        chrome.tabs.sendMessage(tab.id, { action: 'CLIP_CURRENT_SELECTION' }, (response) => {
-          if (chrome.runtime.lastError) {
-            console.warn('[CYBERCLIP // SHORTCUT] Notice:', chrome.runtime.lastError.message);
-          } else if (response && response.status === 'OK') {
-            triggerBadgeAlert('+1', '#00F0FF');
-            setTimeout(() => updateBadgeCounter(), 2000);
-          }
-        });
+// 7. Global Keyboard Shortcuts
+chrome.commands.onCommand.addListener(async (command) => {
+  const settings = await store.getSettings();
+  if (settings.masterEnabled === false) return;
+
+  if (command === 'clip_selection') {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab || !tab.id || !tab.url) return;
+    if (S.isHostBlocked(tab.url, settings.blockedSites)) return;
+
+    chrome.tabs.sendMessage(tab.id, { action: 'CLIP_CURRENT_SELECTION' }, (response) => {
+      if (chrome.runtime.lastError) {
+        // Fallback: extraer via scripting si el content script aún no escuchaba
+        captureSelectionFallback(tab, settings);
+      } else if (response && response.status === 'OK') {
+        triggerBadgeAlert('+1', '#00F0FF');
+        setTimeout(updateBadgeCounter, 1800);
       }
-    } catch (e) {
-      console.error('[CYBERCLIP // COMMAND ERROR]', e);
+    });
+  } else if (command === 'copy_last_clip') {
+    const list = await store.getAll();
+    if (!list || list.length === 0) {
+      triggerBadgeAlert('EMPTY', '#FFA500');
+      setTimeout(updateBadgeCounter, 1800);
+      return;
+    }
+    const last = list[0];
+    const text = last.content + (last.note ? `\n\nNota: ${last.note}` : '');
+    const res = await copyViaOffscreen(text);
+    if (res.ok) {
+      triggerBadgeAlert('COPIED', '#00FF66');
+      setTimeout(updateBadgeCounter, 1800);
     }
   }
 });
 
+async function captureSelectionFallback(tab, settings) {
+  try {
+    const [inj] = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: () => window.getSelection().toString()
+    });
+    const text = inj && inj.result ? inj.result.trim() : '';
+    if (!text) return;
+    const slot = (settings.palette && settings.palette[0]) || S.DEFAULT_PALETTE[0];
+    const rec = {
+      type: 'SNIPPET',
+      title: tab.title || S.extractDomain(tab.url),
+      url: tab.url,
+      domain: S.extractDomain(tab.url),
+      content: text,
+      note: 'Capturado mediante atajo global Alt+C.',
+      color: slot.color,
+      favorite: false,
+      tags: [slot.tag, 'ATAJO_ALT_C'],
+      timestamp: Date.now(),
+      formattedDate: S.formatTechDate(new Date())
+    };
+    const res = await store.add(rec);
+    if (res.ok) {
+      triggerBadgeAlert('+1', '#00F0FF');
+      setTimeout(updateBadgeCounter, 1800);
+    }
+  } catch (e) {}
+}

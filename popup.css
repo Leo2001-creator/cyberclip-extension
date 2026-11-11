@@ -1732,3 +1732,171 @@ body.cyber-viewport {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--electric-cyan);
 }
+
+
+/* =========================================================================
+   NUEVOS ESTILOS v1.3.0 // CYBERPUNK HUD (CAROL DIRECTIVE COMPLIANT)
+   ========================================================================= */
+
+.vault-subfilters-bar {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 6px 8px;
+  background: rgba(8, 9, 12, 0.6);
+  border: 1px dashed rgba(0, 240, 255, 0.2);
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.filter-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--electric-cyan);
+  letter-spacing: 1px;
+}
+
+.cyber-select {
+  flex: 1;
+  background: var(--deep-void);
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  color: var(--text-main, #E5E9F0);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  padding: 4px 6px;
+  outline: none;
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+}
+
+.cyber-select:focus {
+  border-color: var(--cyber-yellow);
+  box-shadow: 0 0 8px rgba(252, 238, 10, 0.4);
+}
+
+/* Card inline editor */
+.card-inline-editor {
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(18, 21, 29, 0.95);
+  border: 1px solid var(--electric-cyan);
+  border-left: 3px solid var(--cyber-yellow);
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+
+.edit-label {
+  display: block;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--electric-cyan);
+  margin-top: 6px;
+  margin-bottom: 2px;
+}
+
+.edit-content-input, .edit-note-input, .edit-tags-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--deep-void);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  color: #fff;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  padding: 4px 6px;
+  outline: none;
+}
+
+.edit-content-input:focus, .edit-note-input:focus, .edit-tags-input:focus {
+  border-color: var(--cyber-yellow);
+}
+
+.edit-buttons-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.card-edited-flag {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  color: var(--holo-amber, #FFA500);
+  border: 1px solid rgba(255, 165, 0, 0.4);
+  padding: 1px 4px;
+  margin-left: 4px;
+}
+
+/* Card focus highlight for keyboard nav */
+.vault-card.card-focused {
+  outline: 2px solid var(--cyber-yellow);
+  box-shadow: 0 0 16px rgba(252, 238, 10, 0.6);
+}
+
+/* Shortcuts Guide Table */
+.shortcuts-guide-table {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  background: rgba(8, 9, 12, 0.55);
+  padding: 8px;
+  border: 1px solid rgba(0, 240, 255, 0.2);
+}
+
+.shortcut-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+}
+
+.shortcut-key {
+  display: inline-block;
+  min-width: 65px;
+  text-align: center;
+  background: var(--armor-plate);
+  border: 1px solid var(--electric-cyan);
+  color: var(--cyber-yellow);
+  font-family: 'Orbitron', monospace;
+  font-weight: 700;
+  font-size: 10px;
+  padding: 2px 6px;
+  clip-path: polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 4px 100%, 0 calc(100% - 4px));
+  box-shadow: 0 0 6px rgba(0, 240, 255, 0.3);
+}
+
+.shortcut-desc {
+  color: #CCD2E0;
+  font-size: 11px;
+}
+
+.cyber-code {
+  font-family: 'Share Tech Mono', monospace;
+  color: var(--cyber-yellow);
+  background: rgba(0, 0, 0, 0.4);
+  padding: 1px 4px;
+  border: 1px solid rgba(252, 238, 10, 0.3);
+}
+
+/* Toast with Undo button */
+.toast-action-btn {
+  background: transparent;
+  border: 1px solid var(--cyber-yellow);
+  color: var(--cyber-yellow);
+  font-family: 'Orbitron', monospace;
+  font-weight: 700;
+  font-size: 10px;
+  padding: 3px 8px;
+  cursor: pointer;
+  margin-left: 8px;
+  letter-spacing: 1px;
+}
+
+.toast-action-btn:hover {
+  background: var(--cyber-yellow);
+  color: var(--deep-void);
+  box-shadow: 0 0 10px var(--cyber-yellow);
+}

@@ -3,20 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CYBERCLIP // HUD Notes & Clipper v1.2.0</title>
-  <!-- Google Fonts: Rajdhani, Orbitron, Share Tech Mono -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <title>CYBERCLIP // HUD Notes & Clipper v1.3.0</title>
+  <link rel="stylesheet" href="fonts/fonts.css">
   <link rel="stylesheet" href="popup.css">
 </head>
 <body class="cyber-viewport">
 
-  <!-- HUD Grid scanlines background overlay -->
   <div class="hud-scanlines" aria-hidden="true"></div>
   <div class="hud-noise" aria-hidden="true"></div>
 
-  <!-- HUD Container -->
   <main class="hud-shell">
     
     <!-- TOP TELEMETRY HEADER -->
@@ -32,7 +27,7 @@
           <div class="hud-sys-tag">
             <span class="status-pulse" id="hudStatusPulse"></span>
             <span class="sys-id" id="hudSysStatus">SYS_CORE: ONLINE</span>
-            <span class="sys-version">v1.2.0</span>
+            <span class="sys-version">v1.3.0</span>
           </div>
         </div>
       </div>
@@ -80,7 +75,7 @@
       </div>
     </section>
 
-    <!-- HUD NAVIGATION TABS (4 TABS) -->
+    <!-- HUD NAVIGATION TABS (01 BANCO DATOS por defecto) -->
     <nav class="hud-nav" role="tablist">
       <button class="hud-tab-btn active" data-tab="tab-vault" role="tab" aria-selected="true" id="tabBtnVault">
         <span class="tab-index">01</span>
@@ -105,21 +100,17 @@
     <div class="hud-panels">
 
       <!-- ==============================================
-           PANEL 1: BANCO DE DATOS (LISTA DE FRAGMENTOS)
+           PANEL 1: BANCO DE DATOS (01)
            ============================================== -->
       <section class="hud-panel active" id="tab-vault" role="tabpanel">
         
-        <!-- Filters & Search Toolbar -->
         <div class="vault-toolbar">
-          
-          <!-- Search box -->
           <div class="search-field-wrapper">
             <span class="search-glyph">⌕</span>
-            <input type="text" id="searchFilterInput" class="search-input" placeholder="BUSCAR POR PALABRA O TAG..." />
+            <input type="text" id="searchFilterInput" class="search-input" placeholder="BUSCAR POR PALABRA O TAG (pulsa /)..." />
             <button type="button" class="search-clear-btn" id="btnClearSearch" title="Limpiar búsqueda">✕</button>
           </div>
 
-          <!-- Scope toggles: Current URL vs All vs Favorites -->
           <div class="scope-toggle-bar">
             <button type="button" class="scope-btn active" id="btnScopeThisPage" data-scope="current">
               ESTA PÁGINA (<span id="countThisPage">0</span>)
@@ -128,53 +119,63 @@
               TODO EL BANCO (<span id="countAll">0</span>)
             </button>
             <button type="button" class="scope-btn scope-fav-btn" id="btnScopeFavorites" data-scope="favorites">
-              <span class="star-icon">★</span> FAVORITOS (<span id="countFavorites">0</span>)
+              <span class="star-icon">★</span> <span class="fav-scope-label">FAVORITOS</span> (<span id="countFavorites">0</span>)
             </button>
           </div>
 
+          <!-- Sort and Date Filters -->
+          <div class="vault-subfilters-bar">
+            <div class="filter-group">
+              <label class="filter-label">ORDEN:</label>
+              <select id="selectSortOrder" class="cyber-select">
+                <option value="newest">MÁS RECIENTES</option>
+                <option value="oldest">MÁS ANTIGUOS</option>
+                <option value="alpha">ALFABÉTICO (A-Z)</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label class="filter-label">FECHA:</label>
+              <select id="selectDateFilter" class="cyber-select">
+                <option value="all">HISTORIAL COMPLETO</option>
+                <option value="today">HOY (24H)</option>
+                <option value="week">ÚLTIMOS 7 DÍAS</option>
+              </select>
+            </div>
+          </div>
         </div>
 
-        <!-- Tag filter pills bar (Dynamic) -->
-        <div class="active-tag-pills" id="activeTagPillsBar">
-          <!-- Filled dynamically -->
-        </div>
+        <div class="active-tag-pills" id="activeTagPillsBar"></div>
 
-        <!-- Fragments Cards List -->
-        <div class="vault-stream" id="vaultCardsContainer">
-          <!-- Snippet cards will be injected by popup.js -->
-        </div>
+        <div class="vault-stream" id="vaultCardsContainer"></div>
 
-        <!-- Empty state placeholder -->
         <div class="vault-empty-state" id="vaultEmptyState" style="display: none;">
           <div class="empty-glyph">⚡</div>
           <div class="empty-title">SIN REGISTROS ENCONTRADOS</div>
-          <div class="empty-desc">No hay fragmentos vinculados a este filtro o URL. Selecciona texto en una página web y usa el clic derecho, o añade una nota en la pestaña 02.</div>
+          <div class="empty-desc">No hay fragmentos vinculados a este filtro o URL. Usa el clic derecho, el botón flotante [⚡ CLIP] o Alt+C.</div>
         </div>
 
       </section>
 
       <!-- ==============================================
-           PANEL 2: NOTA RÁPIDA / CAPTURA MANUAL
+           PANEL 2: NOTA RÁPIDA (02)
            ============================================== -->
       <section class="hud-panel" id="tab-capture" role="tabpanel">
         
         <form id="formQuickNote" class="cyber-form" autocomplete="off">
           
-          <!-- Context Quick Actions & Favorite Toggle -->
           <div class="form-action-row">
             <span class="form-section-title">// CAPTURA DIRECTA</span>
             <div class="form-top-actions">
-              <button type="button" class="btn-fav-toggle" id="btnToggleFavoriteForm" title="Marcar este registro como Favorito protegido (★)">
+              <button type="button" class="btn-fav-toggle" id="btnToggleFavoriteForm" title="Marcar como Favorito blindado (★)">
                 <span class="star-glyph">★</span>
                 <span class="fav-status-text">NO FAV</span>
               </button>
-              <button type="button" class="cyber-btn-ghost btn-fetch-selection" id="btnGrabSelection" title="Extraer el texto actualmente seleccionado en la página web">
+              <button type="button" class="cyber-btn-ghost btn-fetch-selection" id="btnGrabSelection" title="Extraer texto seleccionado en la página">
                 <span class="btn-glyph">⚡</span> EXTRAER SELECCIÓN
               </button>
             </div>
           </div>
 
-          <!-- Fragment / Snippet Input -->
           <div class="form-field-group">
             <label for="inputContent" class="form-label">
               <span class="label-accent">▶</span> FRAGMENTO // CONTENIDO O CITAS
@@ -186,7 +187,6 @@
             </div>
           </div>
 
-          <!-- Color Selector & Tag Widget (Electric Yellow Border + Dark Blue Fill) -->
           <div class="form-field-group">
             <div class="color-widget-header">
               <label class="form-label">
@@ -194,16 +194,12 @@
               </label>
               <span class="active-tag-indicator" id="formActiveTagBadge">TAG: #IDEA</span>
             </div>
-            <!-- Rectángulo requerido: bordes amarillo eléctrico y relleno azul oscuro -->
             <div class="cyber-color-selector-box" id="formColorSelectorBox">
-              <div class="color-swatches-row" id="formColorSwatchesRow">
-                <!-- Dynamically populated from settings -->
-              </div>
+              <div class="color-swatches-row" id="formColorSwatchesRow"></div>
               <div class="color-box-tag-label" id="formColorTagLabel">#IDEA</div>
             </div>
           </div>
 
-          <!-- Annotation / Custom Note -->
           <div class="form-field-group">
             <label for="inputNote" class="form-label">
               <span class="label-accent">▶</span> ANOTACIÓN PERSONAL // CONTEXTO
@@ -215,7 +211,6 @@
             </div>
           </div>
 
-          <!-- Tags input -->
           <div class="form-field-group">
             <label for="inputTags" class="form-label">
               <span class="label-accent">▶</span> ETIQUETAS ADICIONALES (SEPARADAS POR COMA)
@@ -234,7 +229,6 @@
             </div>
           </div>
 
-          <!-- Submit Button (Carol's 45-degree clip-path directive) -->
           <div class="form-submit-row">
             <button type="submit" class="cyber-btn-primary" id="btnSaveRecord">
               <span class="btn-glitch-text">// GUARDAR REGISTRO EN HUD</span>
@@ -247,13 +241,12 @@
       </section>
 
       <!-- ==============================================
-           PANEL 3: TELEMETRÍA Y EXPORTACIÓN
+           PANEL 3: TELEMETRÍA (03)
            ============================================== -->
       <section class="hud-panel" id="tab-system" role="tabpanel">
         
         <div class="telemetry-dashboard">
           
-          <!-- Diagnostics Grid -->
           <div class="diag-grid">
             <div class="diag-card">
               <span class="diag-title">TOTAL FRAGMENTOS</span>
@@ -277,7 +270,6 @@
             </div>
           </div>
 
-          <!-- Top Domains telemetry list -->
           <div class="diag-section">
             <div class="diag-section-header">
               <span class="bracket-t">┌</span> TOP DOMINIOS INDEXADOS <span class="bracket-t">┐</span>
@@ -287,36 +279,29 @@
             </div>
           </div>
 
-          <!-- Export Actions -->
           <div class="diag-section">
             <div class="diag-section-header">
               <span class="bracket-t">┌</span> OPERACIONES DE ENTRADA / SALIDA (I/O) <span class="bracket-t">┐</span>
             </div>
             <div class="export-actions-grid">
-              
               <button type="button" class="cyber-btn-secondary" id="btnExportMarkdown">
                 <span class="btn-icon">📄</span> EXPORTAR A MARKDOWN (.MD)
               </button>
-
               <button type="button" class="cyber-btn-secondary" id="btnExportJSON">
                 <span class="btn-icon">💾</span> EXPORTAR RESPALDO JSON
               </button>
-
               <label class="cyber-btn-secondary btn-file-label" id="lblImportJSON">
                 <span class="btn-icon">📂</span> IMPORTAR DATOS JSON
                 <input type="file" id="fileImportJSON" accept=".json" style="display: none;" />
               </label>
-
               <button type="button" class="cyber-btn-danger" id="btnPurgeAll">
                 <span class="btn-icon">⚠️</span> PURGAR BANCO DE DATOS
               </button>
-
             </div>
           </div>
 
-          <!-- Extension Info -->
           <div class="diag-info-footer">
-            <div class="info-line">CYBERCLIP // MANIFEST V3 // HIGH-TECH HUD</div>
+            <div class="info-line">CYBERCLIP // MANIFEST V3 // HIGH-TECH HUD v1.3.0</div>
             <div class="info-line">DIRECTIVA DE DISEÑO: CAROL BORDER-CUT 45° POLYGON</div>
           </div>
 
@@ -325,13 +310,13 @@
       </section>
 
       <!-- ==============================================
-           PANEL 4: CONFIGURACIÓN HUD (04. CONFIG)
+           PANEL 4: CONFIGURACIÓN (04. CONFIG)
            ============================================== -->
       <section class="hud-panel" id="tab-config" role="tabpanel">
         
         <div class="config-dashboard">
           
-          <!-- Master Extension Power Switch -->
+          <!-- Master Power Switch -->
           <div class="config-block config-block-master">
             <div class="config-block-title">
               <span class="config-bracket">[00]</span> ESTADO MAESTRO DE LA EXTENSIÓN
@@ -339,7 +324,7 @@
             <div class="config-row-toggle">
               <div class="toggle-desc">
                 <span class="toggle-name" id="configMasterStatusTitle">Extensión Activada (ONLINE)</span>
-                <span class="toggle-sub">Al apagarla, la extensión entra en modo Standby: no resalta texto, no muestra el botón flotante ni menús contextuales en las páginas web.</span>
+                <span class="toggle-sub">Al apagarla entra en Standby: no resalta texto, no muestra la barra flotante ni menús contextuales.</span>
               </div>
               <label class="cyber-switch">
                 <input type="checkbox" id="chkMasterPower" checked />
@@ -348,41 +333,98 @@
             </div>
           </div>
 
-          <!-- In-Page Engine Toggle -->
+          <!-- Language Selector -->
           <div class="config-block">
             <div class="config-block-title">
-              <span class="config-bracket">[01]</span> MOTOR DE RESALTADO NEÓN IN-PAGE
+              <span class="config-bracket">[01]</span> IDIOMA DEL HUD // LANGUAGE
             </div>
             <div class="config-row-toggle">
               <div class="toggle-desc">
-                <span class="toggle-name">Resaltado automático al visitar páginas</span>
-                <span class="toggle-sub">Dibuja subrayado y brillo neón en fragmentos guardados previamente en cada URL.</span>
+                <span class="toggle-name">Idioma de la interfaz</span>
+                <span class="toggle-sub">Alterna entre Español e Inglés al instante sin reiniciar.</span>
+              </div>
+              <select id="selectLanguage" class="cyber-select">
+                <option value="es">ESPAÑOL (ES)</option>
+                <option value="en">ENGLISH (EN)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Keyboard Shortcuts Guide -->
+          <div class="config-block">
+            <div class="config-block-title">
+              <span class="config-bracket">[02]</span> GUÍA DE ATAJOS DE TECLADO
+            </div>
+            <div class="shortcuts-guide-table">
+              <div class="shortcut-row">
+                <kbd class="shortcut-key">Alt + C</kbd>
+                <span class="shortcut-desc">Capturar la selección activa en la página web</span>
+              </div>
+              <div class="shortcut-row">
+                <kbd class="shortcut-key">Alt + V</kbd>
+                <span class="shortcut-desc">Copiar al portapapeles el último fragmento guardado</span>
+              </div>
+              <div class="shortcut-row">
+                <kbd class="shortcut-key">Alt + N</kbd>
+                <span class="shortcut-desc">Abrir el HUD Terminal de CyberClip</span>
+              </div>
+              <div class="shortcut-row">
+                <kbd class="shortcut-key">/</kbd>
+                <span class="shortcut-desc">Enfocar el buscador en Banco de Datos</span>
+              </div>
+              <div class="shortcut-row">
+                <kbd class="shortcut-key">↑ / ↓</kbd>
+                <span class="shortcut-desc">Navegar entre tarjetas de fragmentos</span>
+              </div>
+              <div class="shortcut-row">
+                <kbd class="shortcut-key">Supr</kbd>
+                <span class="shortcut-desc">Eliminar la tarjeta enfocada (con opción de deshacer)</span>
+              </div>
+            </div>
+            <div class="config-block-desc" style="margin-top: 8px;">
+              Puedes personalizar las combinaciones de teclas en <code class="cyber-code">chrome://extensions/shortcuts</code>.
+            </div>
+          </div>
+
+          <!-- Highlighter and Dedupe Toggles -->
+          <div class="config-block">
+            <div class="config-block-title">
+              <span class="config-bracket">[03]</span> MOTOR IN-PAGE & PREVENCIÓN
+            </div>
+            <div class="config-row-toggle">
+              <div class="toggle-desc">
+                <span class="toggle-name">Resaltado neón automático en la página</span>
+                <span class="toggle-sub">Dibuja subrayado y brillo neón en fragmentos guardados.</span>
               </div>
               <label class="cyber-switch">
                 <input type="checkbox" id="chkHighlightEnabled" checked />
                 <span class="cyber-slider"></span>
               </label>
             </div>
+            <div class="config-row-toggle" style="margin-top: 10px;">
+              <div class="toggle-desc">
+                <span class="toggle-name">Evitar duplicados exactos en la misma página</span>
+                <span class="toggle-sub">Avisa y bloquea si el mismo fragmento ya fue indexado en la URL.</span>
+              </div>
+              <label class="cyber-switch">
+                <input type="checkbox" id="chkDedupe" checked />
+                <span class="cyber-slider"></span>
+              </label>
+            </div>
           </div>
 
-          <!-- Color Slots & Tag Customizer (6 slots) -->
+          <!-- Color Slots & Tags -->
           <div class="config-block">
             <div class="config-block-title">
-              <span class="config-bracket">[02]</span> RANURAS DE COLOR & ETIQUETAS ASOCIADAS
+              <span class="config-bracket">[04]</span> RANURAS DE COLOR & ETIQUETAS ASOCIADAS
             </div>
             <div class="config-block-desc">
-              Personaliza los 6 colores HEX del HUD y asigna a cada uno el nombre de su etiqueta correspondiente (ej. IDEA, DEV, RESEARCH, BUG).
+              Personaliza los 6 colores HEX del HUD y asigna a cada uno su etiqueta (ej. IDEA, DEV, RESEARCH, BUG).
             </div>
-
-            <!-- 6 Slots container -->
-            <div class="color-slots-grid" id="colorSlotsConfigContainer">
-              <!-- Dynamically generated 6 slot rows -->
-            </div>
-
-            <!-- Config buttons -->
+            <div class="color-slots-grid" id="colorSlotsConfigContainer"></div>
             <div class="config-actions-row">
               <button type="button" class="cyber-btn-primary config-save-btn" id="btnSavePaletteConfig">
-                <span class="btn-glitch-text">// GUARDAR CONFIGURACIÓN</span>
+                <span class="btn-glitch-text">// GUARDAR PALETA</span>
               </button>
               <button type="button" class="cyber-btn-secondary config-reset-btn" id="btnResetPaletteConfig">
                 <span>↺ RESTABLECER VALORES DE FÁBRICA</span>
@@ -390,15 +432,31 @@
             </div>
           </div>
 
-          <!-- Favorites Security Notice -->
+          <!-- Blocklist Sites -->
           <div class="config-block">
             <div class="config-block-title">
-              <span class="config-bracket">[03]</span> BLINDAJE DE SEGURIDAD // FAVORITOS (★)
+              <span class="config-bracket">[05]</span> LISTA DE SITIOS BLOQUEADOS (BLOCKLIST)
+            </div>
+            <div class="config-block-desc">
+              Dominios donde CyberClip nunca actuará (sin barra flotante ni resaltado). Uno por línea:
+            </div>
+            <textarea id="textareaBlockedSites" class="cyber-textarea" rows="3" placeholder="banco.com&#10;internal.corp&#10;mail.google.com"></textarea>
+            <div style="margin-top: 8px;">
+              <button type="button" class="cyber-btn-secondary" id="btnSaveBlockedSites">
+                GUARDAR SITIOS BLOQUEADOS
+              </button>
+            </div>
+          </div>
+
+          <!-- Favorites Protection Notice -->
+          <div class="config-block">
+            <div class="config-block-title">
+              <span class="config-bracket">[06]</span> BLINDAJE DE SEGURIDAD // FAVORITOS (★)
             </div>
             <div class="config-security-box">
               <span class="security-star">★</span>
               <div class="security-text">
-                <strong>PROTECCIÓN ANTI-PURGA ACTIVA:</strong> Los fragmentos marcados con estrella amarilla jamás serán eliminados en operaciones masivas a menos que marques explícitamente la confirmación de desbloqueo.
+                <strong>PROTECCIÓN ANTI-PURGA ACTIVA:</strong> Los fragmentos marcados con estrella amarilla jamás serán eliminados en operaciones masivas a menos que marques expresamente la confirmación de desbloqueo.
               </div>
             </div>
           </div>
@@ -413,16 +471,16 @@
     <footer class="hud-footer">
       <div class="footer-telemetry">
         <span class="footer-label">CONEXIÓN:</span>
-        <span class="footer-value">CHROME_STORAGE_LOCAL</span>
+        <span class="footer-value">CHROME_STORAGE_LOCAL (MOTOR COLA SERIAL)</span>
       </div>
       <div class="footer-shortcuts">
-        <span class="footer-key">CLIC DERECHO / [⚡ CLIP]</span> = CAPTURA
+        <span class="footer-key">Alt+C</span> = CLIP &nbsp;|&nbsp; <span class="footer-key">Alt+V</span> = COPIAR ÚLTIMO &nbsp;|&nbsp; <span class="footer-key">/</span> = BUSCAR
       </div>
     </footer>
 
   </main>
 
-  <!-- PURGE CONFIRMATION MODAL WITH FAVORITE SHIELD -->
+  <!-- PURGE CONFIRMATION MODAL -->
   <div class="hud-modal-backdrop" id="modalPurgeConfirm" style="display: none;">
     <div class="hud-modal-card">
       <div class="modal-header">
@@ -430,9 +488,7 @@
         <h3 class="modal-title">PURGA DE BANCO DE DATOS</h3>
       </div>
       <div class="modal-body">
-        <p class="modal-desc" id="modalPurgeDesc">
-          ¿Deseas purgar la memoria local de fragmentos?
-        </p>
+        <p class="modal-desc" id="modalPurgeDesc">¿Deseas purgar la memoria local de fragmentos?</p>
         <div class="modal-fav-shield-info" id="modalFavShieldBox">
           <span class="shield-glyph">🛡️</span>
           <div class="shield-text">
@@ -451,12 +507,14 @@
     </div>
   </div>
 
-  <!-- HUD TOAST NOTIFICATION -->
+  <!-- HUD TOAST WITH UNDO ACTION -->
   <div class="hud-toast" id="hudToast" role="alert" aria-live="polite">
     <span class="toast-marker">⚡</span>
     <span class="toast-text" id="hudToastMsg">ACCIÓN REGISTRADA</span>
+    <button type="button" class="toast-action-btn" id="hudToastAction" style="display:none;">[DESHACER]</button>
   </div>
 
+  <script src="lib/shared.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
